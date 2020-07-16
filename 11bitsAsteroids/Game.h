@@ -26,16 +26,17 @@ class Physics;
 class Game
 {
 public:
-	Game();
+	Game(float forwardVelocity, float angularVelocity, float thrust, float mass);
 	
 	~Game();
 
-	void Init();
+	void InitContext();
+	void InitGame();
 
-	void Control();
-
+	void Update();
 	void Render();
 
+	void Restart();
 	void Finalize();
 
 	// Have we finish demo?
@@ -53,6 +54,8 @@ private:
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 	void processInput(GLFWwindow* window, float deltaTime);
+
+	void RandomizeAsteroids();
 
 	// settings
 	const unsigned int SCR_WIDTH = 800;
@@ -72,7 +75,7 @@ private:
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
 
-	unsigned int amount = 10;
+	unsigned int amount = 20;
 
 	Asteroid *m_asteroids[MAX_DYNAMICS];
 	unsigned int m_numAsteroids;
@@ -82,6 +85,12 @@ private:
 	Shader* ourShader;
 
 	bool m_demoFinished;
+
+	// configuration
+	float m_forwardVelocity;
+	float m_angularVelocity;
+	float m_thrust;
+	float m_mass;
 };
 
 #endif

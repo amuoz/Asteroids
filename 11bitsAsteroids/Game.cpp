@@ -2,46 +2,31 @@
 
 #include "Physics.h"
 
+
 // externs
 extern Game *g_game;
 Physics* g_PhysicsPtr;
 
-Game::Game()
+__inline float Randf(float min, float max)
 {
-	Init();
+	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
+}
 
-	m_demoFinished = false;
+Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass)
+{
+	m_forwardVelocity = forwardVelocity;
+	m_angularVelocity = angularVelocity;
+	m_thrust = thrust;
+	m_mass = mass;
 
-	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
-	
-	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f));
-	
-	float radius = 10.0f;
-	float offset = 10.0f;
-	for (unsigned int i = 0; i < amount; ++i)
-	{
-		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
-		float angle = (float)i / (float)amount * 360.0f;
-		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		float x = sin(angle) * radius + displacement;
-		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		//float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
-		float y = displacement; // keep height of field smaller compared to width of x and z
-		//float y = sin(angle) * radius + displacement;
+	InitContext();
 
-		// 2. scale: scale between 0.05 and 0.25f / 0.5 and 1
-		float scale = (rand() % 100) / 100.0f + 0.5;
-
-		// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-		float rotAngle = (rand() % 360);
-
-		m_asteroids[m_numAsteroids++] = new Asteroid(glm::vec3(x, y, 0.0f), glm::vec3(scale), (rand() % 10 + 1));
-	}
+	InitGame();
 }
 
 Game::~Game()
 {
+	delete ship;
 	for (unsigned int i = 0; i < m_numAsteroids; ++i) 
 	{
 		delete m_asteroids[i];
@@ -50,7 +35,7 @@ Game::~Game()
 	glfwTerminate();
 }
 
-void Game::Init()
+void Game::InitContext()
 {
 	// glfw: initialize and configure
 	// ------------------------------
@@ -98,7 +83,45 @@ void Game::Init()
 	srand(glfwGetTime()); // initialize random seed	
 }
 
-void Game::Control()
+void Game::InitGame()
+{
+	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
+	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
+	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), m_thrust, m_mass);
+
+	//RandomizeAsteroids();
+
+	m_demoFinished = false;
+}
+
+void Game::RandomizeAsteroids()
+{
+	float radius = 10.0f;
+	float offset = 10.0f;
+	for (unsigned int i = 0; i < amount; ++i)
+	{
+		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
+		float angle = (float)i / (float)amount * 360.0f;
+		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		float x = sin(angle) * radius + displacement;
+		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+		//float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+		float y = displacement; // keep height of field smaller compared to width of x and z
+		//float y = sin(angle) * radius + displacement;
+
+		// 2. scale: scale between 0.05 and 0.25f / 0.5 and 1
+		float scale = (rand() % 100) / 100.0f + 0.5;
+
+		// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+		//float rotAngle = (rand() % 360);
+		//float rotAngle = (rand() % 10 + 1);
+		float rotAngle = Randf(m_angularVelocity / 2, m_angularVelocity);
+
+		m_asteroids[m_numAsteroids++] = new Asteroid(glm::vec3(x, y, 0.0f), glm::vec3(scale), rotAngle, glm::vec3(0.0f, -m_forwardVelocity, 0.0f));
+	}
+}
+
+void Game::Update()
 {
 	// per-frame time logic
 	// --------------------
@@ -106,10 +129,16 @@ void Game::Control()
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
+	ship->m_physicsActor->accelerationForce = glm::vec3(0.0f);
+
 	// ..:: INPUT ::..
 	processInput(window, deltaTime);
 
-	g_PhysicsPtr->Update(deltaTime);
+	if (ship->m_alive)
+	{
+		g_PhysicsPtr->Update(deltaTime);
+	}
+
 }
 
 void Game::Render()
@@ -145,6 +174,20 @@ void Game::Render()
 	glfwPollEvents();
 }
 
+void Game::Restart()
+{
+	delete camera;
+	delete ship;
+	for (unsigned int i = 0; i < m_numAsteroids; ++i)
+	{
+		delete m_asteroids[i];
+	}
+	m_numAsteroids = 0;
+	delete g_PhysicsPtr;
+
+	InitGame();
+}
+
 void Game::Finalize()
 {
 	m_demoFinished = true;
@@ -169,13 +212,23 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		//camera.ProcessKeyboard(LEFT, deltaTime);
-		ship->ProcessKeyboard(Ship_Movement::L, deltaTime);
+		//ship->ProcessKeyboard(Ship_Movement::L, deltaTime);
+		//ship->m_physicsActor->vel = glm::vec3(-SHIP_SPEED, 0.0f, 0.0f);
+		ship->m_physicsActor->accelerationForce = glm::vec3(-(ship->m_thrust), 0.0f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		//camera.ProcessKeyboard(RIGHT, deltaTime);
-		ship->ProcessKeyboard(Ship_Movement::R, deltaTime);
+		//ship->ProcessKeyboard(Ship_Movement::R, deltaTime);
+		//ship->m_physicsActor->vel = glm::vec3(SHIP_SPEED, 0.0f, 0.0f);
+		ship->m_physicsActor->accelerationForce = glm::vec3(ship->m_thrust, 0.0f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+		// Restart game
+		if (!ship->m_alive)
+		{
+			Restart();
+		}
 	}
 }
 

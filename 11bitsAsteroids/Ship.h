@@ -2,8 +2,11 @@
 #define SHIP_H
 
 #include "Mesh.h"
+#include "Physics.h"
 
 const float SHIP_SPEED = 5.0f;
+
+extern Physics* g_PhysicsPtr;
 
 //Used as abstraction to stay away from window-system specific input methods
 enum Ship_Movement {
@@ -11,21 +14,43 @@ enum Ship_Movement {
 	R
 };
 
-class Ship
+class Ship: ICircleContactReport
 {
 public:
 
-	glm::vec3 Position;
+	glm::vec3 m_position;
+	glm::vec3 m_scale;
+	glm::vec3 m_velocity;
+	float m_radius;
+	float m_thrust;
+	float m_mass;
 
-	Ship(const glm::vec3 & pos)
+	bool m_alive;
+
+	// physics pointer
+	Physics::PhysicActor* m_physicsActor;
+
+
+	Ship(const glm::vec3 &pos, const glm::vec3 &scale, const float thrust, const float mass)
 	{
-		Position = pos;
-
 		Init();
+
+		m_alive = true;
+
+		m_position = pos;
+		m_scale = scale;
+		m_radius = m_scale.x / 2.0f;
+		m_velocity = glm::vec3(0.0f);
+		m_thrust = thrust;
+		m_mass = mass;
+
+		m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), mass);
+		m_physicsActor->report = this;
 	}
 
 	~Ship()
 	{
+		//delete m_physicsActor;
 		delete m_mesh;
 	}
 
@@ -75,9 +100,11 @@ public:
 
 	void Render(Shader &shader)
 	{
+		m_position = m_physicsActor->pos;
+
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, Position);
-		model = glm::scale(model, glm::vec3(1.5f));
+		model = glm::translate(model, m_position);
+		model = glm::scale(model, m_scale);
 		
 		shader.setMat4("model", model);
 
@@ -88,10 +115,21 @@ public:
 	void ProcessKeyboard(Ship_Movement direction, float deltaTime)
 	{
 		float velocity = SHIP_SPEED * deltaTime;
-		if (direction == L)
-			Position.x -= velocity;
+		if (direction == L) 
+		{
+			m_position.x -= velocity;
+		}
+
 		if (direction == R)
-			Position.x += velocity;
+		{
+			m_position.x += velocity;
+		}
+			
+	}
+
+	void OnContact() override
+	{
+		m_alive = false;
 	}
 
 private:

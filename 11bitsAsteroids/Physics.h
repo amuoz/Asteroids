@@ -10,6 +10,12 @@
 
 #define MAX_DYNAMICS 1000
 
+class ICircleContactReport
+{
+public:
+	virtual void OnContact() = 0;
+};
+
 class Physics
 {
 public:
@@ -18,6 +24,11 @@ public:
 	{
 		glm::vec3 vel;
 		glm::vec3 pos;
+
+		float mass;
+		glm::vec3 accelerationForce;
+
+		ICircleContactReport* report = 0;
 	};
 
 	// physics sphere geometry
@@ -37,7 +48,7 @@ public:
 	bool CheckCircleCircleCollision(const glm::vec3 &circle1Pos, float circle1Radius, const glm::vec3 &circle2Pos, float circle2Radius,
 		glm::vec3 &col, glm::vec3 &normal);
 
-	PhysicActor* AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius);
+	PhysicActor* AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius, glm::vec3 force = glm::vec3(0.0f), float mass = 1.0f);
 
 private:
 

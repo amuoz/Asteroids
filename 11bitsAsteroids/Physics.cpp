@@ -1,5 +1,7 @@
 #include "Physics.h"
 
+#include <iostream>
+
 Physics::Physics(const glm::vec3 &gravity)
 {
 	m_gravityForce = gravity;
@@ -24,9 +26,12 @@ void Physics::Update(float deltaTime)
 
 void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 {
+	// F = m * a
+	// a = F / m
 	// V = V0 + a * t
 	// P = Po + V * t
 	geom.actorInfo.vel += m_gravityForce * deltaTime;
+	geom.actorInfo.vel += (geom.actorInfo.accelerationForce / geom.actorInfo.mass) * deltaTime;
 	glm::vec3 prevPos = geom.actorInfo.pos;
 	glm::vec3 newPos = geom.actorInfo.pos + geom.actorInfo.vel * deltaTime;
 	glm::vec3 desplDir = newPos - prevPos;
@@ -42,6 +47,16 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 			{
 				geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
 				geom.actorInfo.pos = col;
+				
+				// notify collision
+				if (geom.actorInfo.report)
+				{
+					geom.actorInfo.report->OnContact();
+				}
+				if (m_dynamicActors[i]->actorInfo.report)
+				{
+					m_dynamicActors[i]->actorInfo.report->OnContact();
+				}
 			}
 		}
 	}
@@ -66,13 +81,15 @@ bool Physics::CheckCircleCircleCollision(const glm::vec3& circle1Pos, float circ
 	return false;
 }
 
-Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius)
+Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius, glm::vec3 force, float mass)
 {
 	if (m_numDynamic < MAX_DYNAMICS) 
 	{
 		sDynamicGeometryCircle *geom = new sDynamicGeometryCircle;
 		geom->actorInfo.pos = pos;
 		geom->actorInfo.vel = vel;
+		geom->actorInfo.accelerationForce = force;
+		geom->actorInfo.mass = mass;
 		geom->radius = radius;
 		m_dynamicActors[m_numDynamic++] = geom;
 		return &geom->actorInfo;
