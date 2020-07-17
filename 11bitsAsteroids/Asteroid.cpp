@@ -123,7 +123,7 @@ void Asteroid::Render(Shader &shader)
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, m_position);
 	model = glm::scale(model, m_scale);
-	model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
+	model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
 
 	shader.setMat4("model", model);
 
@@ -171,6 +171,7 @@ void Asteroid::Reset()
 	m_position = glm::vec3(x, y, 0.0f);
 	m_scale = glm::vec3(scale);
 	m_rotAngle = rotAngle;
+	m_rotAxis = glm::vec3((float)rand(), (float)rand(), (float)rand());
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = glm::vec3(0.0f, -(g_Config->m_forwardVelocity), 0.0f);
 
