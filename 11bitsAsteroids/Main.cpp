@@ -1,8 +1,10 @@
+#include "Common.h"
 #include "Game.h"
 
 #define PI 3.1415926535897932
 
-Game *g_game;
+Game* g_game;
+
 int main()
 {
 	// ..:: config file ::..
@@ -15,7 +17,7 @@ int main()
 	// explosion duration (sec)
 
 	// spaceship forward velocity (m / sec)
-	float forwardVelocity = 2.5f;
+	float forwardVelocity = 4.0f;
 
 	// asteroid angular velocity range (rad / sec)
 	float angularVelocity = 2 * PI;
@@ -27,11 +29,13 @@ int main()
 	float mass = 500.0f;
 
 	// initial asteroid appearance freq (n / sec)
+	float freq = 1.0f;	// f = 1 / T , T=0.5
 
 	// asteroid appearance freq increase (n / sec)
+	float freqIncrease = 0.02f;
 
-	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass);
-	cout << "==================== GAME INITIALIZED =======================";
+	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass, freq, freqIncrease);
+	std::cout << "==================== GAME INITIALIZED =======================";
 
 	// game loop
 	while (!g_game->IsFinished())

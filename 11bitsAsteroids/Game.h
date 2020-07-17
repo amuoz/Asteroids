@@ -4,11 +4,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Shader.h"
-#include "Camera.h"
-#include "Ship.h"
-#include "Asteroid.h"
-#include "Game.h"
+class Shader;
+class Camera;
+class Ship;
+//class Asteroid;
+class AsteroidMgr;
 
 #include <iostream>
 #include <cmath>
@@ -23,10 +23,11 @@
 // Forwards
 class Physics;
 
+
 class Game
 {
 public:
-	Game(float forwardVelocity, float angularVelocity, float thrust, float mass);
+	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease);
 	
 	~Game();
 
@@ -75,22 +76,17 @@ private:
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
 
-	unsigned int amount = 20;
+	unsigned int amount = 10;
 
-	Asteroid *m_asteroids[MAX_DYNAMICS];
-	unsigned int m_numAsteroids;
+	//Asteroid *m_asteroids[MAX_DYNAMICS];
+	//unsigned int m_numAsteroids;
 
 	GLFWwindow* window;
 
+	AsteroidMgr* m_AsteroidMgr;
 	Shader* ourShader;
 
 	bool m_demoFinished;
-
-	// configuration
-	float m_forwardVelocity;
-	float m_angularVelocity;
-	float m_thrust;
-	float m_mass;
 };
 
 #endif

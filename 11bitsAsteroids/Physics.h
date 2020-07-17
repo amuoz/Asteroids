@@ -22,6 +22,8 @@ public:
 	
 	struct PhysicActor
 	{
+		bool active;
+
 		glm::vec3 vel;
 		glm::vec3 pos;
 

@@ -20,7 +20,10 @@ void Physics::Update(float deltaTime)
 {
 	for (unsigned int i = 0; i < m_numDynamic; ++i) 
 	{
-		UpdateDymanicPos(*m_dynamicActors[i], deltaTime);
+		if (m_dynamicActors[i]->actorInfo.active)
+		{
+			UpdateDymanicPos(*m_dynamicActors[i], deltaTime);
+		}
 	}
 }
 
@@ -45,7 +48,8 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 		{
 			if (CheckCircleCircleCollision(geom.actorInfo.pos, geom.radius, m_dynamicActors[i]->actorInfo.pos, m_dynamicActors[i]->radius, col, normal))
 			{
-				geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
+				// push actor in normal direction
+				//geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
 				geom.actorInfo.pos = col;
 				
 				// notify collision
@@ -86,6 +90,7 @@ Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::
 	if (m_numDynamic < MAX_DYNAMICS) 
 	{
 		sDynamicGeometryCircle *geom = new sDynamicGeometryCircle;
+		geom->actorInfo.active = false;
 		geom->actorInfo.pos = pos;
 		geom->actorInfo.vel = vel;
 		geom->actorInfo.accelerationForce = force;

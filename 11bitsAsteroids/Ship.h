@@ -1,12 +1,13 @@
 #ifndef SHIP_H
 #define SHIP_H
 
+#include "Common.h"
 #include "Mesh.h"
 #include "Physics.h"
 
 const float SHIP_SPEED = 5.0f;
 
-extern Physics* g_PhysicsPtr;
+//extern Physics* g_PhysicsPtr;
 
 //Used as abstraction to stay away from window-system specific input methods
 enum Ship_Movement {
@@ -46,6 +47,7 @@ public:
 
 		m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), mass);
 		m_physicsActor->report = this;
+		m_physicsActor->active = true;
 	}
 
 	~Ship()
@@ -109,6 +111,11 @@ public:
 		shader.setMat4("model", model);
 
 		m_mesh->Draw(shader);
+	}
+
+	void Update(float deltaTime)
+	{
+		m_physicsActor->accelerationForce = glm::vec3(0.0f);
 	}
 
 	// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

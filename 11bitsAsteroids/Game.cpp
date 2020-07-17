@@ -1,23 +1,33 @@
 #include "Game.h"
 
+#include "Common.h"
 #include "Physics.h"
-
+#include "Shader.h"
+#include "Camera.h"
+#include "Ship.h"
+#include "Asteroid.h"
+#include "Config.h"
+#include "AsteroidMgr.h"
 
 // externs
-extern Game *g_game;
+//extern Game *g_game;
 Physics* g_PhysicsPtr;
+Config* g_Config;
 
 __inline float Randf(float min, float max)
 {
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass)
+Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease)
 {
-	m_forwardVelocity = forwardVelocity;
-	m_angularVelocity = angularVelocity;
-	m_thrust = thrust;
-	m_mass = mass;
+	g_Config = new Config();
+	g_Config->m_forwardVelocity = forwardVelocity;
+	g_Config->m_angularVelocity = angularVelocity;
+	g_Config->m_thrust = thrust;
+	g_Config->m_mass = mass;
+	g_Config->m_freq = freq;
+	g_Config->m_freqIncrease = freqIncrease;
 
 	InitContext();
 
@@ -27,10 +37,6 @@ Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mas
 Game::~Game()
 {
 	delete ship;
-	for (unsigned int i = 0; i < m_numAsteroids; ++i) 
-	{
-		delete m_asteroids[i];
-	}
 	delete g_PhysicsPtr;
 	glfwTerminate();
 }
@@ -87,7 +93,8 @@ void Game::InitGame()
 {
 	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
 	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), m_thrust, m_mass);
+	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), g_Config->m_thrust, g_Config->m_mass);
+	m_AsteroidMgr = new AsteroidMgr();
 
 	//RandomizeAsteroids();
 
@@ -115,9 +122,9 @@ void Game::RandomizeAsteroids()
 		// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
 		//float rotAngle = (rand() % 360);
 		//float rotAngle = (rand() % 10 + 1);
-		float rotAngle = Randf(m_angularVelocity / 2, m_angularVelocity);
+		float rotAngle = Randf(g_Config->m_angularVelocity / 2, g_Config->m_angularVelocity);
 
-		m_asteroids[m_numAsteroids++] = new Asteroid(glm::vec3(x, y, 0.0f), glm::vec3(scale), rotAngle, glm::vec3(0.0f, -m_forwardVelocity, 0.0f));
+		//m_asteroids[m_numAsteroids++] = new Asteroid(glm::vec3(x, y, 0.0f), glm::vec3(scale), rotAngle, glm::vec3(0.0f, -m_forwardVelocity, 0.0f));
 	}
 }
 
@@ -129,15 +136,20 @@ void Game::Update()
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
-	ship->m_physicsActor->accelerationForce = glm::vec3(0.0f);
-
 	// ..:: INPUT ::..
 	processInput(window, deltaTime);
 
 	if (ship->m_alive)
 	{
+		// ..:: PHYSICS ::..
 		g_PhysicsPtr->Update(deltaTime);
+
+		// ..:: LOGIC ::..
+		ship->Update(deltaTime);
+		m_AsteroidMgr->Update(deltaTime);
 	}
+
+
 
 }
 
@@ -163,10 +175,13 @@ void Game::Render()
 	ship->Render(*ourShader);
 
 	// render boxes
+	/*
 	for (unsigned int i = 0; i < m_numAsteroids; ++i) 
 	{
 		m_asteroids[i]->Render(*ourShader);
 	}
+	*/
+	m_AsteroidMgr->Render(*ourShader);
 
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
@@ -178,11 +193,7 @@ void Game::Restart()
 {
 	delete camera;
 	delete ship;
-	for (unsigned int i = 0; i < m_numAsteroids; ++i)
-	{
-		delete m_asteroids[i];
-	}
-	m_numAsteroids = 0;
+	delete m_AsteroidMgr;
 	delete g_PhysicsPtr;
 
 	InitGame();
