@@ -1,6 +1,6 @@
 #include "AsteroidMgr.h"
 #include "Asteroid.h"
-#include "AsteroidPool.h"
+//#include "AsteroidPool.h"
 #include "Common.h"
 
 #include <algorithm>
@@ -12,7 +12,7 @@ AsteroidMgr::AsteroidMgr()
 {
 	m_timeAccum = 0.0f;
 	m_currentFreq = g_Config->m_freq;
-	m_pool = new AsteroidPool();
+	m_pool = new AsteroidPool<Asteroid>();
 }
 
 AsteroidMgr::~AsteroidMgr()
@@ -20,7 +20,7 @@ AsteroidMgr::~AsteroidMgr()
 	delete m_pool;
 	m_asteroids.clear();
 	// deallocating the memory
-	std::vector<Asteroid*>().swap(m_asteroids);
+	std::list<Asteroid*>().swap(m_asteroids);
 }
 
 void AsteroidMgr::Update(float deltaTime)
@@ -32,7 +32,7 @@ void AsteroidMgr::Update(float deltaTime)
 	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, g_Config->m_freq));
 	//std::cout << "Frequency: " << m_currentFreq << std::endl;
 
-	for (std::vector<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
+	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
 	{
 		Asteroid* asteroid = (*it);
 		asteroid->Update(deltaTime);
@@ -60,7 +60,7 @@ void AsteroidMgr::Update(float deltaTime)
 
 void AsteroidMgr::Render(Shader &shader)
 {
-	for (std::vector<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end(); ++it)
+	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end(); ++it)
 	{	
 		Asteroid* asteroid = (*it);
 		asteroid->Render(shader);

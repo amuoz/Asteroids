@@ -46,8 +46,8 @@ public:
 		m_mass = mass;
 
 		m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), mass);
-		m_physicsActor->report = this;
 		m_physicsActor->active = true;
+		m_physicsActor->report = this;
 	}
 
 	~Ship()

@@ -9,9 +9,11 @@ class Camera;
 class Ship;
 //class Asteroid;
 class AsteroidMgr;
+class Actor;
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,7 +29,7 @@ class Physics;
 class Game
 {
 public:
-	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease);
+	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity);
 	
 	~Game();
 
@@ -87,6 +89,9 @@ private:
 	Shader* ourShader;
 
 	bool m_demoFinished;
+
+	std::vector<Actor*> m_scene;
+
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include "Asteroid.h"
 #include "Config.h"
 #include "AsteroidMgr.h"
+#include "Bullet.h"
 
 // externs
 //extern Game *g_game;
@@ -19,7 +20,7 @@ __inline float Randf(float min, float max)
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease)
+Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity)
 {
 	g_Config = new Config();
 	g_Config->m_forwardVelocity = forwardVelocity;
@@ -28,6 +29,7 @@ Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mas
 	g_Config->m_mass = mass;
 	g_Config->m_freq = freq;
 	g_Config->m_freqIncrease = freqIncrease;
+	g_Config->m_bulletVelocity = bulletVelocity;
 
 	InitContext();
 
@@ -147,6 +149,11 @@ void Game::Update()
 		// ..:: LOGIC ::..
 		ship->Update(deltaTime);
 		m_AsteroidMgr->Update(deltaTime);
+
+		for (Actor* actor : m_scene)
+		{
+			actor->Update(deltaTime);
+		}
 	}
 
 
@@ -182,6 +189,11 @@ void Game::Render()
 	}
 	*/
 	m_AsteroidMgr->Render(*ourShader);
+
+	for (Actor* actor: m_scene)
+	{
+		actor->Render(*ourShader);
+	}
 
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
@@ -240,6 +252,13 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 		{
 			Restart();
 		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		std::cout << "******* BULLET CREATED!!!";
+		glm::vec3 bulletPosition = glm::vec3(ship->m_position) + 1.0f;
+		Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
+		m_scene.push_back(bullet);
 	}
 }
 

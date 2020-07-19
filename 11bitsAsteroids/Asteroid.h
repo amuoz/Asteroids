@@ -5,14 +5,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Actor.h"
+#include "IPoolable.h"
 #include "Physics.h"
 #include "Config.h"
 #include "Game.h"
 
 class Mesh;
 class Shader;
-	
-class Asteroid
+
+class Asteroid: public Actor, IPoolable
 {
 public:
 
@@ -20,17 +22,19 @@ public:
 	~Asteroid();
 
 	void Init();
-	void Reset();
 
-	void Render(Shader &shader);
-	void Update(float deltaTime);
+	// IPoolable
+	void Reset() override;
 
-	void SetActive(bool newActive);
+	void Render(Shader &shader) override;
+	void Update(float deltaTime) override;
+
+	//void SetActive(bool newActive);
 
 	float Randf(float min, float max);
 
 	bool OutOfBounds();
-
+/*
 private:
 
 	glm::vec3 m_position;
@@ -44,6 +48,7 @@ private:
 	Physics::PhysicActor* m_physicsActor = 0;
 
 	Mesh* m_mesh;
+*/
 };
 
 #endif

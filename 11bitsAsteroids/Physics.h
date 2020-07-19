@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -56,8 +57,9 @@ private:
 
 	glm::vec3 m_gravityForce;
 
-	unsigned int m_numDynamic;
-	sDynamicGeometryCircle *m_dynamicActors[MAX_DYNAMICS];
+	//unsigned int m_numDynamic;
+	//sDynamicGeometryCircle *m_dynamicActors[MAX_DYNAMICS];
+	std::vector<sDynamicGeometryCircle*> m_dynamicActors;
 };
 
 #endif // !PHYSICS_H

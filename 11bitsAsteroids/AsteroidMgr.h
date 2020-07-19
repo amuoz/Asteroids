@@ -3,11 +3,13 @@
 
 #include <string>
 #include <iostream>
-#include <vector>
+//#include <vector>
+#include <list>
+
+#include "AsteroidPool.h"
 
 // forwards
 class Asteroid;
-class AsteroidPool;
 class Shader;
 
 class AsteroidMgr
@@ -22,10 +24,10 @@ public:
 
 private:
 	// active asteroids
-	std::vector<Asteroid*> m_asteroids;	
+	std::list<Asteroid*> m_asteroids;	
 
-	// pool
-	AsteroidPool* m_pool;
+	// Asteroid pool
+	AsteroidPool<Asteroid>* m_pool;
 
 	// time accumulation to spawn
 	float m_timeAccum;

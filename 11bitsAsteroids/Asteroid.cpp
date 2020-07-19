@@ -1,5 +1,5 @@
-#include "Common.h"
 #include "Asteroid.h"
+#include "Common.h"
 #include "Mesh.h"
 
 #include <GLFW/glfw3.h>
@@ -135,10 +135,12 @@ void Asteroid::Update(float deltaTime)
 
 }
 
+/*
 void Asteroid::SetActive(bool newActive)
 {
 	m_physicsActor->active = newActive;
 }
+*/
 
 float Asteroid::Randf(float min, float max)
 {

@@ -13,6 +13,7 @@ int main()
 	// cannon shooting feq (shots / sec)
 
 	// cannon bullet velocity (m / sec)
+	float bulletVelocity = 8.0f;
 
 	// explosion duration (sec)
 
@@ -34,7 +35,7 @@ int main()
 	// asteroid appearance freq increase (n / sec)
 	float freqIncrease = 0.02f;
 
-	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass, freq, freqIncrease);
+	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass, freq, freqIncrease, bulletVelocity);
 	std::cout << "==================== GAME INITIALIZED =======================";
 
 	// game loop

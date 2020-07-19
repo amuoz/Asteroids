@@ -5,19 +5,33 @@
 Physics::Physics(const glm::vec3 &gravity)
 {
 	m_gravityForce = gravity;
-	m_numDynamic = 0;
+	//m_numDynamic = 0;
 }
 
 Physics::~Physics()
 {
+	for (sDynamicGeometryCircle* dynamicActor: m_dynamicActors)
+	{
+		delete dynamicActor;
+	}
+	/*
 	for (unsigned int i = 0; i < m_numDynamic; ++i) 
 	{
 		delete m_dynamicActors[i];
 	}
+	*/
 }
 
 void Physics::Update(float deltaTime)
 {
+	for (sDynamicGeometryCircle* dynamicActor : m_dynamicActors)
+	{
+		if (dynamicActor->actorInfo.active)
+		{
+			UpdateDymanicPos(*dynamicActor, deltaTime);
+		}
+	}
+	/*
 	for (unsigned int i = 0; i < m_numDynamic; ++i) 
 	{
 		if (m_dynamicActors[i]->actorInfo.active)
@@ -25,6 +39,7 @@ void Physics::Update(float deltaTime)
 			UpdateDymanicPos(*m_dynamicActors[i], deltaTime);
 		}
 	}
+	*/
 }
 
 void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
@@ -42,11 +57,11 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 	geom.actorInfo.pos = newPos;
 
 	glm::vec3 col, normal;
-	for (unsigned int i = 0; i < m_numDynamic; ++i)
+	for (sDynamicGeometryCircle* dynamicActor : m_dynamicActors)
 	{
-		if (&geom != m_dynamicActors[i])
+		if (&geom != dynamicActor)
 		{
-			if (CheckCircleCircleCollision(geom.actorInfo.pos, geom.radius, m_dynamicActors[i]->actorInfo.pos, m_dynamicActors[i]->radius, col, normal))
+			if (CheckCircleCircleCollision(geom.actorInfo.pos, geom.radius, dynamicActor->actorInfo.pos, dynamicActor->radius, col, normal))
 			{
 				// push actor in normal direction
 				//geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
@@ -57,9 +72,9 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 				{
 					geom.actorInfo.report->OnContact();
 				}
-				if (m_dynamicActors[i]->actorInfo.report)
+				if (dynamicActor->actorInfo.report)
 				{
-					m_dynamicActors[i]->actorInfo.report->OnContact();
+					dynamicActor->actorInfo.report->OnContact();
 				}
 			}
 		}
@@ -87,7 +102,7 @@ bool Physics::CheckCircleCircleCollision(const glm::vec3& circle1Pos, float circ
 
 Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius, glm::vec3 force, float mass)
 {
-	if (m_numDynamic < MAX_DYNAMICS) 
+	if (m_dynamicActors.size() < MAX_DYNAMICS)
 	{
 		sDynamicGeometryCircle *geom = new sDynamicGeometryCircle;
 		geom->actorInfo.active = false;
@@ -96,7 +111,8 @@ Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::
 		geom->actorInfo.accelerationForce = force;
 		geom->actorInfo.mass = mass;
 		geom->radius = radius;
-		m_dynamicActors[m_numDynamic++] = geom;
+		m_dynamicActors.push_back(geom);
+		//m_dynamicActors[m_numDynamic++] = geom;
 		return &geom->actorInfo;
 	}
 	return 0;
