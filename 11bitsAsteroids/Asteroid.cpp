@@ -19,6 +19,7 @@ Asteroid::Asteroid()
 	Reset();
 
 	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius);
+	m_physicsActor->report = this;
 }
 
 Asteroid::~Asteroid()
@@ -116,7 +117,7 @@ void Asteroid::Init()
 	m_mesh = new Mesh(vertices, indices, textures);
 }
 
-void Asteroid::Render(Shader &shader)
+void Asteroid::Render(Shader shader)
 {
 	m_position = m_physicsActor->pos;
 
@@ -125,7 +126,7 @@ void Asteroid::Render(Shader &shader)
 	model = glm::scale(model, m_scale);
 	model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
 
-	shader.setMat4("model", model);
+	shader.SetMatrix4("model", model);
 
 	m_mesh->Draw(shader);
 }
@@ -156,6 +157,16 @@ bool Asteroid::OutOfBounds()
 	return false;
 }
 
+void Asteroid::OnContact()
+{
+	m_exploded = true;
+}
+
+bool Asteroid::HasExploded()
+{
+	return m_exploded;
+}
+
 void Asteroid::Reset()
 {	
 	float offset = 10.0f;
@@ -176,10 +187,12 @@ void Asteroid::Reset()
 	m_rotAxis = glm::vec3((float)rand(), (float)rand(), (float)rand());
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = glm::vec3(0.0f, -(g_Config->m_forwardVelocity), 0.0f);
+	m_exploded = false;
 
 	if (m_physicsActor)
 	{
 		SetActive(false);
 		m_physicsActor->pos = m_position;
+		m_physicsActor->report = this;
 	}
 }

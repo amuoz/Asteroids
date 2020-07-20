@@ -16,6 +16,7 @@ public:
 	float m_freq;
 	float m_freqIncrease;
 	float m_bulletVelocity;
+	float m_bulletFrequency;
 };
 
 #endif

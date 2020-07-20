@@ -12,7 +12,7 @@ public:
 
 	void Init();
 
-	void Render(Shader &shader) override;
+	void Render(Shader shader) override;
 	void Update(float deltaTime) override;
 
 	void OnContact() override;

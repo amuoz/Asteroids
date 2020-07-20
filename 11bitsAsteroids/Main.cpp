@@ -11,14 +11,15 @@ int main()
 	// process config file
 
 	// cannon shooting feq (shots / sec)
+	float bulletFrequency = 0.5f;
 
 	// cannon bullet velocity (m / sec)
-	float bulletVelocity = 8.0f;
+	float bulletVelocity = 15.0f;
 
 	// explosion duration (sec)
 
 	// spaceship forward velocity (m / sec)
-	float forwardVelocity = 4.0f;
+	float forwardVelocity = 8.0f;
 
 	// asteroid angular velocity range (rad / sec)
 	float angularVelocity = 2 * PI;
@@ -35,7 +36,7 @@ int main()
 	// asteroid appearance freq increase (n / sec)
 	float freqIncrease = 0.02f;
 
-	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass, freq, freqIncrease, bulletVelocity);
+	g_game = new Game(forwardVelocity, angularVelocity, thrust, mass, freq, freqIncrease, bulletVelocity, bulletFrequency);
 	std::cout << "==================== GAME INITIALIZED =======================";
 
 	// game loop

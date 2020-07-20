@@ -13,7 +13,8 @@ class Actor;
 
 #include <iostream>
 #include <cmath>
-#include <vector>
+#include <list>
+#include <map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -25,11 +26,18 @@ class Actor;
 // Forwards
 class Physics;
 
+// FreeType fonts
+struct Character {
+	unsigned int TextureID;  // ID handle of the glyph texture
+	glm::ivec2   Size;       // Size of glyph
+	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
+	unsigned int Advance;    // Offset to advance to next glyph
+};
 
 class Game
 {
 public:
-	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity);
+	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity, float bulletFrequency);
 	
 	~Game();
 
@@ -90,8 +98,11 @@ private:
 
 	bool m_demoFinished;
 
-	std::vector<Actor*> m_scene;
+	std::list<Actor*> m_scene;
 
+	float currentBulletFreq;
+
+	std::map<char, Character> Characters;
 };
 
 #endif

@@ -59,7 +59,7 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 	glm::vec3 col, normal;
 	for (sDynamicGeometryCircle* dynamicActor : m_dynamicActors)
 	{
-		if (&geom != dynamicActor)
+		if (&geom != dynamicActor && dynamicActor->actorInfo.active)
 		{
 			if (CheckCircleCircleCollision(geom.actorInfo.pos, geom.radius, dynamicActor->actorInfo.pos, dynamicActor->radius, col, normal))
 			{
@@ -72,7 +72,7 @@ void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
 				{
 					geom.actorInfo.report->OnContact();
 				}
-				if (dynamicActor->actorInfo.report)
+				if (dynamicActor->actorInfo.active && dynamicActor->actorInfo.report)
 				{
 					dynamicActor->actorInfo.report->OnContact();
 				}

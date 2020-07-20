@@ -100,7 +100,7 @@ public:
 		m_mesh = new Mesh(vertices, indices, textures);
 	}
 
-	void Render(Shader &shader)
+	void Render(Shader shader)
 	{
 		m_position = m_physicsActor->pos;
 
@@ -108,7 +108,7 @@ public:
 		model = glm::translate(model, m_position);
 		model = glm::scale(model, m_scale);
 		
-		shader.setMat4("model", model);
+		shader.SetMatrix4("model", model);
 
 		m_mesh->Draw(shader);
 	}

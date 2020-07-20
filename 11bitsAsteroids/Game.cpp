@@ -10,6 +10,15 @@
 #include "AsteroidMgr.h"
 #include "Bullet.h"
 
+#include "ResourceManager.h"
+
+#include <iostream>
+#include <string>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H 
+
+
 // externs
 //extern Game *g_game;
 Physics* g_PhysicsPtr;
@@ -20,7 +29,7 @@ __inline float Randf(float min, float max)
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity)
+Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity, float bulletFrequency)
 {
 	g_Config = new Config();
 	g_Config->m_forwardVelocity = forwardVelocity;
@@ -30,6 +39,7 @@ Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mas
 	g_Config->m_freq = freq;
 	g_Config->m_freqIncrease = freqIncrease;
 	g_Config->m_bulletVelocity = bulletVelocity;
+	g_Config->m_bulletFrequency = bulletFrequency;
 
 	InitContext();
 
@@ -86,9 +96,77 @@ void Game::InitContext()
 
 	// build and compile our shader program
 	// ------------------------------------
-	ourShader = new Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
+	//ourShader = new Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
+	ResourceManager::LoadShader("3.3.shader.vs", "3.3.shader.fs", nullptr, "base");
 
-	srand(glfwGetTime()); // initialize random seed	
+	srand(glfwGetTime()); // initialize random seed
+
+	// FreeType
+	// --------
+	FT_Library ft;
+	// All functions return a value different than 0 whenever an error occurred
+	if (FT_Init_FreeType(&ft))
+	{
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		exit(-1);
+	}
+
+	// load font as face
+	FT_Face face;
+	if (FT_New_Face(ft, "fonts/arial.ttf", 0, &face)) {
+		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+		exit(-1);
+	}
+	else {
+		// set size to load glyphs as
+		FT_Set_Pixel_Sizes(face, 0, 48);
+
+		// disable byte-alignment restriction
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		// load first 128 characters of ASCII set
+		for (unsigned char c = 0; c < 128; c++)
+		{
+			// Load character glyph 
+			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+			{
+				std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+				continue;
+			}
+			// generate texture
+			unsigned int texture;
+			glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glTexImage2D(
+				GL_TEXTURE_2D,
+				0,
+				GL_RED,
+				face->glyph->bitmap.width,
+				face->glyph->bitmap.rows,
+				0,
+				GL_RED,
+				GL_UNSIGNED_BYTE,
+				face->glyph->bitmap.buffer
+			);
+			// set texture options
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// now store character for later use
+			Character character = {
+				texture,
+				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+				face->glyph->advance.x
+			};
+			Characters.insert(std::pair<char, Character>(c, character));
+		}
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	// destroy FreeType once we're finished
+	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
 }
 
 void Game::InitGame()
@@ -137,6 +215,7 @@ void Game::Update()
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
+	currentBulletFreq += deltaTime;
 
 	// ..:: INPUT ::..
 	processInput(window, deltaTime);
@@ -150,10 +229,24 @@ void Game::Update()
 		ship->Update(deltaTime);
 		m_AsteroidMgr->Update(deltaTime);
 
-		for (Actor* actor : m_scene)
+		
+		for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
 		{
-			actor->Update(deltaTime);
+			Actor* actor = (*it);
+			if (actor->IsActive())
+			{
+				actor->Update(deltaTime);
+				it++;
+			}
+			else
+			{
+				actor->m_physicsActor->active = false;
+				it = m_scene.erase(it);
+				delete actor;
+			}
+						
 		}
+
 	}
 
 
@@ -168,18 +261,21 @@ void Game::Render()
 
 	// ..:: Drawing code ::..
 	// be sure to activate the shader
-	ourShader->use();
+	//ourShader->Use();
+	ResourceManager::GetShader("base").Use();
 
 	// pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
 	// -----------------------------------------------------------------------------------------------------------
 	glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-	ourShader->setMat4("projection", projection);
+	//ourShader->SetMatrix4("projection", projection);
+	ResourceManager::GetShader("base").SetMatrix4("projection", projection);
 
 	// camera/view transformation
 	glm::mat4 view = camera->GetViewMatrix();
-	ourShader->setMat4("view", view);
+	//ourShader->SetMatrix4("view", view);
+	ResourceManager::GetShader("base").SetMatrix4("view", view);
 
-	ship->Render(*ourShader);
+	ship->Render(ResourceManager::GetShader("base"));
 
 	// render boxes
 	/*
@@ -188,11 +284,14 @@ void Game::Render()
 		m_asteroids[i]->Render(*ourShader);
 	}
 	*/
-	m_AsteroidMgr->Render(*ourShader);
+	m_AsteroidMgr->Render(ResourceManager::GetShader("base"));
 
 	for (Actor* actor: m_scene)
 	{
-		actor->Render(*ourShader);
+		if (actor->IsActive()) 
+		{
+			actor->Render(ResourceManager::GetShader("base"));
+		}
 	}
 
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -255,10 +354,17 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		std::cout << "******* BULLET CREATED!!!";
-		glm::vec3 bulletPosition = glm::vec3(ship->m_position) + 1.0f;
-		Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
-		m_scene.push_back(bullet);
+		if (currentBulletFreq >= g_Config->m_bulletFrequency)
+		{
+			glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
+			Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
+			m_scene.push_back(bullet);
+			currentBulletFreq = 0;
+		}
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+	{
+		currentBulletFreq = g_Config->m_bulletFrequency;
 	}
 }
 

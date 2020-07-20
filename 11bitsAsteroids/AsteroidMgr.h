@@ -20,7 +20,7 @@ public:
 
 	void Update(float deltaTime);
 
-	void Render(Shader &shader);
+	void Render(Shader shader);
 
 private:
 	// active asteroids

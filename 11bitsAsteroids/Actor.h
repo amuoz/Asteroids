@@ -11,10 +11,19 @@
 class Actor
 {
 public:
-	virtual void Render(Shader &shader) = 0;
+
+	Actor();
+	~Actor();
+
+	virtual void Render(Shader shader) = 0;
 	virtual void Update(float deltaTime) = 0;
 	
 	void SetActive(bool newActive);
+
+	inline bool IsActive() { return m_active; };
+
+	// physics pointer
+	Physics::PhysicActor* m_physicsActor = 0;
 
 protected:
 	glm::vec3 m_position;
@@ -24,8 +33,7 @@ protected:
 	float m_radius;
 	glm::vec3 m_velocity;
 
-	// physics pointer
-	Physics::PhysicActor* m_physicsActor = 0;
+	bool m_active;
 
 	Mesh* m_mesh = 0;
 };

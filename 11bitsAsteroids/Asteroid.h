@@ -14,7 +14,7 @@
 class Mesh;
 class Shader;
 
-class Asteroid: public Actor, IPoolable
+class Asteroid: public Actor, IPoolable, ICircleContactReport
 {
 public:
 
@@ -26,7 +26,7 @@ public:
 	// IPoolable
 	void Reset() override;
 
-	void Render(Shader &shader) override;
+	void Render(Shader shader) override;
 	void Update(float deltaTime) override;
 
 	//void SetActive(bool newActive);
@@ -34,21 +34,14 @@ public:
 	float Randf(float min, float max);
 
 	bool OutOfBounds();
-/*
+
+	void OnContact() override;
+
+	bool HasExploded();
+
 private:
 
-	glm::vec3 m_position;
-	glm::vec3 m_scale;
-	float m_rotAngle;
-	glm::vec3 m_rotAxis;
-	float m_radius;
-	glm::vec3 m_velocity;
-
-	// physics pointer
-	Physics::PhysicActor* m_physicsActor = 0;
-
-	Mesh* m_mesh;
-*/
+	bool m_exploded;
 };
 
 #endif

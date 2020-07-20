@@ -3,6 +3,8 @@
 #include "Common.h"
 #include "Mesh.h"
 
+#define VERTICAL_BOUND 10.0f
+
 Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 {
 	Init();
@@ -11,6 +13,7 @@ Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 	m_scale = glm::vec3(scale);
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = vel;
+	m_active = true;
 
 	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius);
 	m_physicsActor->active = true;
@@ -19,6 +22,7 @@ Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 
 Bullet::~Bullet()
 {
+	delete m_physicsActor;
 	delete m_mesh;
 }
 
@@ -46,7 +50,7 @@ void Bullet::Init()
 	m_mesh = new Mesh(vertices, indices, textures);
 }
 
-void Bullet::Render(Shader &shader)
+void Bullet::Render(Shader shader)
 {
 	m_position = m_physicsActor->pos;
 
@@ -55,17 +59,22 @@ void Bullet::Render(Shader &shader)
 	model = glm::scale(model, m_scale);
 	//model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
 
-	shader.setMat4("model", model);
+	shader.SetMatrix4("model", model);
 
 	m_mesh->Draw(shader);
 }
 
 void Bullet::Update(float deltaTime)
 {
-
+	if (m_position.y > VERTICAL_BOUND)
+	{
+		m_active = false;
+	}
 }
 
 void Bullet::OnContact()
 {
+	std::cout << "*********** Bullet collision ***********" << std::endl;
 	//delete this;
+	m_active = false;
 }

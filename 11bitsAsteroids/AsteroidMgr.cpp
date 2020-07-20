@@ -38,7 +38,7 @@ void AsteroidMgr::Update(float deltaTime)
 		asteroid->Update(deltaTime);
 		
 		// if out-of-bounds recycle asteroid
-		if (asteroid->OutOfBounds())
+		if (asteroid->OutOfBounds() || asteroid->HasExploded())
 		{
 			it = m_asteroids.erase(it);
 			m_pool->returnAsteroid(asteroid);
@@ -58,7 +58,7 @@ void AsteroidMgr::Update(float deltaTime)
 
 }
 
-void AsteroidMgr::Render(Shader &shader)
+void AsteroidMgr::Render(Shader shader)
 {
 	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end(); ++it)
 	{	
