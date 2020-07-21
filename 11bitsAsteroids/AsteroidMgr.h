@@ -22,6 +22,8 @@ public:
 
 	void Render(Shader shader);
 
+	void Reset();
+
 private:
 	// active asteroids
 	std::list<Asteroid*> m_asteroids;	

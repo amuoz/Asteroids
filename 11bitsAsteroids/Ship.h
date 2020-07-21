@@ -110,6 +110,8 @@ public:
 		
 		shader.SetMatrix4("model", model);
 
+		shader.SetFloat("time", 0.0f);
+
 		m_mesh->Draw(shader);
 	}
 
@@ -137,6 +139,14 @@ public:
 	void OnContact() override
 	{
 		m_alive = false;
+	}
+
+	void Reset(const glm::vec3 &pos)
+	{
+		m_position = pos;
+		m_physicsActor->pos = m_position;
+		m_physicsActor->vel = glm::vec3(0.0f);
+		m_alive = true;
 	}
 
 private:

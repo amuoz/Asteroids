@@ -161,7 +161,7 @@ void Asteroid::Update(float deltaTime)
 	{
 		m_explosionTime += deltaTime;
 
-		if (m_explosionTime >= g_Config->m_explosionDuration)
+		if (m_explosionTime >= g_Config->GetValue(Config::EXPLOSION_DURATION))
 		{
 			m_exploded = true;
 		}
@@ -212,14 +212,14 @@ void Asteroid::Reset()
 	float scale = (rand() % 100) / 100.0f + 0.5;
 
 	// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-	float rotAngle = Randf(g_Config->m_angularVelocity / 2, g_Config->m_angularVelocity);
+	float rotAngle = Randf(g_Config->GetValue(Config::ANGULAR_VELOCITY) / 2, g_Config->GetValue(Config::ANGULAR_VELOCITY));
 
 	m_position = glm::vec3(x, y, 0.0f);
 	m_scale = glm::vec3(scale);
 	m_rotAngle = rotAngle;
 	m_rotAxis = glm::vec3((float)rand(), (float)rand(), (float)rand());
 	m_radius = m_scale.x / 2.0f;
-	m_velocity = glm::vec3(0.0f, -(g_Config->m_forwardVelocity), 0.0f);
+	m_velocity = glm::vec3(0.0f, -(g_Config->GetValue(Config::FORWARD_VELOCITY)), 0.0f);
 	m_exploded = false;
 	m_explosion = false;
 	m_explosionTime = 0.0f;

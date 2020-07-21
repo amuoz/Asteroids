@@ -16,6 +16,8 @@
 #include <string>
 #include <iostream>
 
+#define CONFIG_FILE "config/config.conf"
+
 // externs
 //extern Game *g_game;
 Physics* g_PhysicsPtr;
@@ -26,21 +28,8 @@ __inline float Randf(float min, float max)
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game(float forwardVelocity, float angularVelocity, float thrust, 
-	float mass, float freq, float freqIncrease, float bulletVelocity, 
-	float bulletFrequency, float explosionDuration) : m_state(GAME_ACTIVE)
+Game::Game() : m_state(GAME_ACTIVE)
 {
-	g_Config = new Config();
-	g_Config->m_forwardVelocity = forwardVelocity;
-	g_Config->m_angularVelocity = angularVelocity;
-	g_Config->m_thrust = thrust;
-	g_Config->m_mass = mass;
-	g_Config->m_freq = freq;
-	g_Config->m_freqIncrease = freqIncrease;
-	g_Config->m_bulletVelocity = bulletVelocity;
-	g_Config->m_bulletFrequency = bulletFrequency;
-	g_Config->m_explosionDuration = explosionDuration;
-
 	InitContext();
 
 	InitGame();
@@ -48,8 +37,13 @@ Game::Game(float forwardVelocity, float angularVelocity, float thrust,
 
 Game::~Game()
 {
-	delete ship;
-	delete g_PhysicsPtr;
+	//delete g_PhysicsPtr;
+	//delete camera;
+	//delete ship;
+	//delete m_AsteroidMgr;
+	//delete m_text;
+	//delete g_Config;
+
 	glfwTerminate();
 }
 
@@ -107,9 +101,12 @@ void Game::InitContext()
 
 void Game::InitGame()
 {
+	g_Config = new Config();
+	g_Config->Load(CONFIG_FILE);
+
 	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
 	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), g_Config->m_thrust, g_Config->m_mass);
+	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), g_Config->GetValue(Config::THRUST), g_Config->GetValue(Config::MASS));
 	m_AsteroidMgr = new AsteroidMgr();
 	m_text = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
 	m_text->Load("fonts/arial.ttf", 24);
@@ -215,17 +212,25 @@ void Game::Render()
 
 void Game::Restart()
 {
-	delete g_PhysicsPtr;
-	delete camera;
-	delete ship;
-	delete m_AsteroidMgr;
-	delete m_text;
+	m_AsteroidMgr->Reset();
+	ship->Reset(glm::vec3(0.0f, -6.0f, 0.0f));
 
+	for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
+	{
+		Actor* actor = (*it);
+		actor->m_physicsActor->active = false;
+		it = m_scene.erase(it);
+		delete actor;
+	}
 	m_scene.clear();
 	// deallocating the memory
 	std::list<Actor*>().swap(m_scene);
 
-	InitGame();
+	// hot-reload config file
+	g_Config->Load(CONFIG_FILE);
+
+	m_demoFinished = false;
+	this->m_state = GAME_ACTIVE;
 }
 
 void Game::Finalize()
@@ -269,17 +274,17 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			if (currentBulletFreq >= g_Config->m_bulletFrequency)
+			if (currentBulletFreq >= g_Config->GetValue(Config::BULLET_FREQUENCY))
 			{
 				glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
-				Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
+				Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->GetValue(Config::BULLET_VELOCITY), 0.0f));
 				m_scene.push_back(bullet);
 				currentBulletFreq = 0;
 			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
 		{
-			currentBulletFreq = g_Config->m_bulletFrequency;
+			currentBulletFreq = g_Config->GetValue(Config::BULLET_FREQUENCY);
 		}
 	}
 
@@ -289,8 +294,6 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 		{
 			// Restart game
 			Restart();
-			this->m_state = GAME_ACTIVE;
-		
 		}
 	}
 }

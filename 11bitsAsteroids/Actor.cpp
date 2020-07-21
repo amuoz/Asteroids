@@ -9,7 +9,6 @@ Actor::Actor()
 
 Actor::~Actor()
 {
-	std::cout << ">>>>>>>> DELETE ACTOR!!!" << std::endl;
 	g_PhysicsPtr->DeleteDynamicActor(m_physicsActor);
 	delete m_physicsActor;
 	delete m_mesh;

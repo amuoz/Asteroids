@@ -20,9 +20,6 @@ class Actor;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// defines
-#define MAX_DYNAMICS 1000
-
 // Forwards
 class Physics;
 class TextRenderer;
@@ -36,9 +33,7 @@ enum GameState {
 class Game
 {
 public:
-	Game(float forwardVelocity, float angularVelocity, float thrust, 
-		float mass, float freq, float freqIncrease, float bulletVelocity, 
-		float bulletFrequency, float explosionDuration);
+	Game();
 	~Game();
 
 	void InitContext();
@@ -69,8 +64,6 @@ private:
 
 	void processInput(GLFWwindow* window, float deltaTime);
 
-	void RandomizeAsteroids();
-
 	// settings
 	const unsigned int SCR_WIDTH = 800;
 	const unsigned int SCR_HEIGHT = 600;
@@ -90,9 +83,6 @@ private:
 	float lastFrame = 0.0f; // Time of last frame
 
 	unsigned int amount = 10;
-
-	//Asteroid *m_asteroids[MAX_DYNAMICS];
-	//unsigned int m_numAsteroids;
 
 	GLFWwindow* window;
 

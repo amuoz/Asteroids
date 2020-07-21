@@ -11,7 +11,7 @@
 AsteroidMgr::AsteroidMgr()
 {
 	m_timeAccum = 0.0f;
-	m_currentFreq = g_Config->m_freq;
+	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
 	m_pool = new AsteroidPool<Asteroid>();
 }
 
@@ -27,9 +27,9 @@ void AsteroidMgr::Update(float deltaTime)
 {
 	m_timeAccum += deltaTime;
 	// spawn freq increases over time
-	m_currentFreq -= g_Config->m_freqIncrease * deltaTime;
+	m_currentFreq -= g_Config->GetValue(Config::FREQUENCY_INCREASE) * deltaTime;
 	// clam max freq
-	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, g_Config->m_freq));
+	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, g_Config->GetValue(Config::FREQUENCY)));
 	//std::cout << "Frequency: " << m_currentFreq << std::endl;
 
 	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
@@ -65,6 +65,18 @@ void AsteroidMgr::Render(Shader shader)
 		Asteroid* asteroid = (*it);
 		asteroid->Render(shader);
 	}
+}
+
+void AsteroidMgr::Reset()
+{
+	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
+	{
+		Asteroid* asteroid = (*it);
+		it = m_asteroids.erase(it);
+		m_pool->returnAsteroid(asteroid);
+	}
+	m_timeAccum = 0.0f;
+	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
 }
 
 void AsteroidMgr::SpawnAsteroid()
