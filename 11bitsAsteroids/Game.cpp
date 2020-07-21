@@ -11,13 +11,10 @@
 #include "Bullet.h"
 
 #include "ResourceManager.h"
+#include "TextRenderer.h"
 
-#include <iostream>
 #include <string>
-
-#include <ft2build.h>
-#include FT_FREETYPE_H 
-
+#include <iostream>
 
 // externs
 //extern Game *g_game;
@@ -29,7 +26,9 @@ __inline float Randf(float min, float max)
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity, float bulletFrequency)
+Game::Game(float forwardVelocity, float angularVelocity, float thrust, 
+	float mass, float freq, float freqIncrease, float bulletVelocity, 
+	float bulletFrequency, float explosionDuration) : m_state(GAME_ACTIVE)
 {
 	g_Config = new Config();
 	g_Config->m_forwardVelocity = forwardVelocity;
@@ -40,6 +39,7 @@ Game::Game(float forwardVelocity, float angularVelocity, float thrust, float mas
 	g_Config->m_freqIncrease = freqIncrease;
 	g_Config->m_bulletVelocity = bulletVelocity;
 	g_Config->m_bulletFrequency = bulletFrequency;
+	g_Config->m_explosionDuration = explosionDuration;
 
 	InitContext();
 
@@ -91,82 +91,18 @@ void Game::InitContext()
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// wireframe mode
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// build and compile our shader program
 	// ------------------------------------
 	//ourShader = new Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
-	ResourceManager::LoadShader("3.3.shader.vs", "3.3.shader.fs", nullptr, "base");
+	ResourceManager::LoadShader("3.3.shader.vs", "3.3.shader.fs", "3.3.shader.gs", "base");
 
 	srand(glfwGetTime()); // initialize random seed
-
-	// FreeType
-	// --------
-	FT_Library ft;
-	// All functions return a value different than 0 whenever an error occurred
-	if (FT_Init_FreeType(&ft))
-	{
-		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
-		exit(-1);
-	}
-
-	// load font as face
-	FT_Face face;
-	if (FT_New_Face(ft, "fonts/arial.ttf", 0, &face)) {
-		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-		exit(-1);
-	}
-	else {
-		// set size to load glyphs as
-		FT_Set_Pixel_Sizes(face, 0, 48);
-
-		// disable byte-alignment restriction
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-		// load first 128 characters of ASCII set
-		for (unsigned char c = 0; c < 128; c++)
-		{
-			// Load character glyph 
-			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-			{
-				std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-				continue;
-			}
-			// generate texture
-			unsigned int texture;
-			glGenTextures(1, &texture);
-			glBindTexture(GL_TEXTURE_2D, texture);
-			glTexImage2D(
-				GL_TEXTURE_2D,
-				0,
-				GL_RED,
-				face->glyph->bitmap.width,
-				face->glyph->bitmap.rows,
-				0,
-				GL_RED,
-				GL_UNSIGNED_BYTE,
-				face->glyph->bitmap.buffer
-			);
-			// set texture options
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			// now store character for later use
-			Character character = {
-				texture,
-				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-				face->glyph->advance.x
-			};
-			Characters.insert(std::pair<char, Character>(c, character));
-		}
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	// destroy FreeType once we're finished
-	FT_Done_Face(face);
-	FT_Done_FreeType(ft);
 }
 
 void Game::InitGame()
@@ -175,37 +111,10 @@ void Game::InitGame()
 	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
 	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), g_Config->m_thrust, g_Config->m_mass);
 	m_AsteroidMgr = new AsteroidMgr();
-
-	//RandomizeAsteroids();
+	m_text = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
+	m_text->Load("fonts/arial.ttf", 24);
 
 	m_demoFinished = false;
-}
-
-void Game::RandomizeAsteroids()
-{
-	float radius = 10.0f;
-	float offset = 10.0f;
-	for (unsigned int i = 0; i < amount; ++i)
-	{
-		// 1. translation: displace along circle with 'radius' in range [-offset, offset]
-		float angle = (float)i / (float)amount * 360.0f;
-		float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		float x = sin(angle) * radius + displacement;
-		displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-		//float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
-		float y = displacement; // keep height of field smaller compared to width of x and z
-		//float y = sin(angle) * radius + displacement;
-
-		// 2. scale: scale between 0.05 and 0.25f / 0.5 and 1
-		float scale = (rand() % 100) / 100.0f + 0.5;
-
-		// 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
-		//float rotAngle = (rand() % 360);
-		//float rotAngle = (rand() % 10 + 1);
-		float rotAngle = Randf(g_Config->m_angularVelocity / 2, g_Config->m_angularVelocity);
-
-		//m_asteroids[m_numAsteroids++] = new Asteroid(glm::vec3(x, y, 0.0f), glm::vec3(scale), rotAngle, glm::vec3(0.0f, -m_forwardVelocity, 0.0f));
-	}
 }
 
 void Game::Update()
@@ -220,7 +129,7 @@ void Game::Update()
 	// ..:: INPUT ::..
 	processInput(window, deltaTime);
 
-	if (ship->m_alive)
+	if (this->m_state == GAME_ACTIVE)
 	{
 		// ..:: PHYSICS ::..
 		g_PhysicsPtr->Update(deltaTime);
@@ -243,13 +152,14 @@ void Game::Update()
 				actor->m_physicsActor->active = false;
 				it = m_scene.erase(it);
 				delete actor;
-			}
-						
+			}			
 		}
 
+		if (!ship->m_alive) 
+		{
+			this->m_state = GAME_RESTART;
+		}
 	}
-
-
 
 }
 
@@ -266,7 +176,7 @@ void Game::Render()
 
 	// pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
 	// -----------------------------------------------------------------------------------------------------------
-	glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 10.0f, 100.0f);
 	//ourShader->SetMatrix4("projection", projection);
 	ResourceManager::GetShader("base").SetMatrix4("projection", projection);
 
@@ -278,12 +188,6 @@ void Game::Render()
 	ship->Render(ResourceManager::GetShader("base"));
 
 	// render boxes
-	/*
-	for (unsigned int i = 0; i < m_numAsteroids; ++i) 
-	{
-		m_asteroids[i]->Render(*ourShader);
-	}
-	*/
 	m_AsteroidMgr->Render(ResourceManager::GetShader("base"));
 
 	for (Actor* actor: m_scene)
@@ -294,6 +198,15 @@ void Game::Render()
 		}
 	}
 
+	if (this->m_state == GAME_RESTART)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//m_text->RenderText("Press R to retry", 250.0f, this->SCR_HEIGHT / 2.0f, 1.0f);
+		m_text->RenderText("You LOSE!!!", 320.0, SCR_HEIGHT / 2 - 25.0, 1.0, glm::vec3(1.0, 0.0, 0.0));
+		m_text->RenderText("Press R to restart or ESC to quit", 220.0, SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 1.0, 0.0));
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
 	glfwSwapBuffers(window);
@@ -302,10 +215,15 @@ void Game::Render()
 
 void Game::Restart()
 {
+	delete g_PhysicsPtr;
 	delete camera;
 	delete ship;
 	delete m_AsteroidMgr;
-	delete g_PhysicsPtr;
+	delete m_text;
+
+	m_scene.clear();
+	// deallocating the memory
+	std::list<Actor*>().swap(m_scene);
 
 	InitGame();
 }
@@ -319,52 +237,61 @@ void Game::Finalize()
 // ---------------------------------------------------------------------------------------------------------
 void Game::processInput(GLFWwindow* window, float deltaTime)
 {
+	// Quit game
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		Finalize();
 		glfwSetWindowShouldClose(window, true);
 	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+
+	// Active inputs
+	if (this->m_state == GAME_ACTIVE)
 	{
-		camera->ProcessKeyboard(FORWARD, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		camera->ProcessKeyboard(BACKWARD, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		//ship->ProcessKeyboard(Ship_Movement::L, deltaTime);
-		//ship->m_physicsActor->vel = glm::vec3(-SHIP_SPEED, 0.0f, 0.0f);
-		ship->m_physicsActor->accelerationForce = glm::vec3(-(ship->m_thrust), 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		//ship->ProcessKeyboard(Ship_Movement::R, deltaTime);
-		//ship->m_physicsActor->vel = glm::vec3(SHIP_SPEED, 0.0f, 0.0f);
-		ship->m_physicsActor->accelerationForce = glm::vec3(ship->m_thrust, 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-	{
-		// Restart game
-		if (!ship->m_alive)
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
+			camera->ProcessKeyboard(FORWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			camera->ProcessKeyboard(BACKWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			//ship->ProcessKeyboard(Ship_Movement::L, deltaTime);
+			//ship->m_physicsActor->vel = glm::vec3(-SHIP_SPEED, 0.0f, 0.0f);
+			ship->m_physicsActor->accelerationForce = glm::vec3(-(ship->m_thrust), 0.0f, 0.0f);
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			//ship->ProcessKeyboard(Ship_Movement::R, deltaTime);
+			//ship->m_physicsActor->vel = glm::vec3(SHIP_SPEED, 0.0f, 0.0f);
+			ship->m_physicsActor->accelerationForce = glm::vec3(ship->m_thrust, 0.0f, 0.0f);
+		}
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		{
+			if (currentBulletFreq >= g_Config->m_bulletFrequency)
+			{
+				glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
+				Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
+				m_scene.push_back(bullet);
+				currentBulletFreq = 0;
+			}
+		}
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+		{
+			currentBulletFreq = g_Config->m_bulletFrequency;
+		}
+	}
+
+	if (this->m_state == GAME_RESTART)
+	{
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+		{
+			// Restart game
 			Restart();
+			this->m_state = GAME_ACTIVE;
+		
 		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		if (currentBulletFreq >= g_Config->m_bulletFrequency)
-		{
-			glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
-			Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->m_bulletVelocity, 0.0f));
-			m_scene.push_back(bullet);
-			currentBulletFreq = 0;
-		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
-	{
-		currentBulletFreq = g_Config->m_bulletFrequency;
 	}
 }
 

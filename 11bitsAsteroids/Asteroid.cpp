@@ -35,77 +35,89 @@ void Asteroid::Init()
 	vector<Texture> textures;
 
 	Vertex vertex;
-	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, -0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, -0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-	vertices.push_back(vertex);
+
 	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, -0.5f, 0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
-	vertices.push_back(vertex);
+
 	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
+	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
 	vertices.push_back(vertex);
+
 	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
-	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
+
+	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
 	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+	vertices.push_back(vertex);
+
+	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+	vertices.push_back(vertex);
+
 	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, -0.5f, 0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+
+	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, -0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
+	vertices.push_back(vertex);
+
+	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
 	vertices.push_back(vertex);
+
+	vertex.Position = glm::vec3(0.5f, -0.5f, -0.5f);
+	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
 	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
+	vertices.push_back(vertex);
+
+	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(0.5f, 0.5f, -0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+	vertices.push_back(vertex);
+
+	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+	vertices.push_back(vertex);
+	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+	vertices.push_back(vertex);
+
 	vertex.Position = glm::vec3(0.5f, 0.5f, 0.5f);
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(-0.5f, 0.5f, 0.5f);
 	vertices.push_back(vertex);
-	vertex.Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
 	vertices.push_back(vertex);
 
 	/*
@@ -119,21 +131,41 @@ void Asteroid::Init()
 
 void Asteroid::Render(Shader shader)
 {
-	m_position = m_physicsActor->pos;
-
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, m_position);
-	model = glm::scale(model, m_scale);
-	model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
+	if (!m_explosion) 
+	{
+		m_position = m_physicsActor->pos;
+
+		model = glm::translate(model, m_position);
+		model = glm::scale(model, m_scale);
+		m_lastRotAngle = (float)glfwGetTime() * m_rotAngle;
+		model = glm::rotate(model, m_lastRotAngle, m_rotAxis);
+	}
+	else 
+	{
+		model = glm::translate(model, m_position);
+		model = glm::scale(model, m_scale);
+		model = glm::rotate(model, m_lastRotAngle, m_rotAxis);
+	}
 
 	shader.SetMatrix4("model", model);
+
+	shader.SetFloat("time", m_explosionTime);
 
 	m_mesh->Draw(shader);
 }
 
 void Asteroid::Update(float deltaTime)
 {
+	if (m_explosion)
+	{
+		m_explosionTime += deltaTime;
 
+		if (m_explosionTime >= g_Config->m_explosionDuration)
+		{
+			m_exploded = true;
+		}
+	}
 }
 
 /*
@@ -159,7 +191,8 @@ bool Asteroid::OutOfBounds()
 
 void Asteroid::OnContact()
 {
-	m_exploded = true;
+	m_explosion = true;
+	m_physicsActor->active = false;
 }
 
 bool Asteroid::HasExploded()
@@ -188,6 +221,8 @@ void Asteroid::Reset()
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = glm::vec3(0.0f, -(g_Config->m_forwardVelocity), 0.0f);
 	m_exploded = false;
+	m_explosion = false;
+	m_explosionTime = 0.0f;
 
 	if (m_physicsActor)
 	{

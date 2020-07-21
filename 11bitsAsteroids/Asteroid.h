@@ -42,6 +42,10 @@ public:
 private:
 
 	bool m_exploded;
+	bool m_explosion;
+	float m_explosionTime;
+	float m_explosionDuration;
+	float m_lastRotAngle;
 };
 
 #endif

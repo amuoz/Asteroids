@@ -14,6 +14,7 @@ TextRenderer::TextRenderer(unsigned int width, unsigned int height)
 	this->TextShader = ResourceManager::LoadShader("text.vs", "text.fs", nullptr, "text");
 	this->TextShader.SetMatrix4("projection", glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f), true);
 	this->TextShader.SetInteger("text", 0);
+	
 	// configure VAO/VBO for texture quads
 	glGenVertexArrays(1, &this->VAO);
 	glGenBuffers(1, &this->VBO);
@@ -116,6 +117,7 @@ void TextRenderer::RenderText(std::string text, float x, float y, float scale, g
 			{ xpos + w, ypos + h,   1.0f, 1.0f },
 			{ xpos + w, ypos,       1.0f, 0.0f }
 		};
+
 		// render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
 		// update content of VBO memory
@@ -124,8 +126,8 @@ void TextRenderer::RenderText(std::string text, float x, float y, float scale, g
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		// render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// now advance cursors for next glyph
-		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (1/64th times 2^6 = 64)
+		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);

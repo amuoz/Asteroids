@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="3.3.shader.fs" />
+    <None Include="3.3.shader.gs" />
     <None Include="3.3.shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

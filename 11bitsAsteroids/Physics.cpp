@@ -5,76 +5,72 @@
 Physics::Physics(const glm::vec3 &gravity)
 {
 	m_gravityForce = gravity;
-	//m_numDynamic = 0;
 }
 
 Physics::~Physics()
 {
-	for (sDynamicGeometryCircle* dynamicActor: m_dynamicActors)
+	for (PhysicActor* dynamicActor: m_dynamicActors)
 	{
 		delete dynamicActor;
 	}
-	/*
-	for (unsigned int i = 0; i < m_numDynamic; ++i) 
-	{
-		delete m_dynamicActors[i];
-	}
-	*/
+
+	m_dynamicActors.clear();
+	// deallocating the memory
+	std::vector<PhysicActor*>().swap(m_dynamicActors);
 }
 
 void Physics::Update(float deltaTime)
 {
-	for (sDynamicGeometryCircle* dynamicActor : m_dynamicActors)
+	m_currentReportTimer += deltaTime;
+	if (m_currentReportTimer >= m_reportTimer)
 	{
-		if (dynamicActor->actorInfo.active)
+		m_currentReportTimer -= m_reportTimer;
+		std::cout << "********* Total dynamic objects: " << m_dynamicActors.size() << std::endl;
+	}
+
+	for (PhysicActor* dynamicActor : m_dynamicActors)
+	{
+		if (dynamicActor->active)
 		{
 			UpdateDymanicPos(*dynamicActor, deltaTime);
 		}
 	}
-	/*
-	for (unsigned int i = 0; i < m_numDynamic; ++i) 
-	{
-		if (m_dynamicActors[i]->actorInfo.active)
-		{
-			UpdateDymanicPos(*m_dynamicActors[i], deltaTime);
-		}
-	}
-	*/
+
 }
 
-void Physics::UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime)
+void Physics::UpdateDymanicPos(PhysicActor &geom, float deltaTime)
 {
 	// F = m * a
 	// a = F / m
 	// V = V0 + a * t
 	// P = Po + V * t
-	geom.actorInfo.vel += m_gravityForce * deltaTime;
-	geom.actorInfo.vel += (geom.actorInfo.accelerationForce / geom.actorInfo.mass) * deltaTime;
-	glm::vec3 prevPos = geom.actorInfo.pos;
-	glm::vec3 newPos = geom.actorInfo.pos + geom.actorInfo.vel * deltaTime;
+	geom.vel += m_gravityForce * deltaTime;
+	geom.vel += (geom.accelerationForce / geom.mass) * deltaTime;
+	glm::vec3 prevPos = geom.pos;
+	glm::vec3 newPos = geom.pos + geom.vel * deltaTime;
 	glm::vec3 desplDir = newPos - prevPos;
 	desplDir = glm::normalize(desplDir);
-	geom.actorInfo.pos = newPos;
+	geom.pos = newPos;
 
 	glm::vec3 col, normal;
-	for (sDynamicGeometryCircle* dynamicActor : m_dynamicActors)
+	for (PhysicActor* dynamicActor : m_dynamicActors)
 	{
-		if (&geom != dynamicActor && dynamicActor->actorInfo.active)
+		if (&geom != dynamicActor && dynamicActor->active)
 		{
-			if (CheckCircleCircleCollision(geom.actorInfo.pos, geom.radius, dynamicActor->actorInfo.pos, dynamicActor->radius, col, normal))
+			if (CheckCircleCircleCollision(geom.pos, geom.radius, dynamicActor->pos, dynamicActor->radius, col, normal))
 			{
 				// push actor in normal direction
 				//geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
-				geom.actorInfo.pos = col;
+				geom.pos = col;
 				
 				// notify collision
-				if (geom.actorInfo.report)
+				if (geom.report)
 				{
-					geom.actorInfo.report->OnContact();
+					geom.report->OnContact();
 				}
-				if (dynamicActor->actorInfo.active && dynamicActor->actorInfo.report)
+				if (dynamicActor->active && dynamicActor->report)
 				{
-					dynamicActor->actorInfo.report->OnContact();
+					dynamicActor->report->OnContact();
 				}
 			}
 		}
@@ -104,16 +100,24 @@ Physics::PhysicActor* Physics::AddDynamicActor(const glm::vec3 &pos, const glm::
 {
 	if (m_dynamicActors.size() < MAX_DYNAMICS)
 	{
-		sDynamicGeometryCircle *geom = new sDynamicGeometryCircle;
-		geom->actorInfo.active = false;
-		geom->actorInfo.pos = pos;
-		geom->actorInfo.vel = vel;
-		geom->actorInfo.accelerationForce = force;
-		geom->actorInfo.mass = mass;
+		PhysicActor *geom = new PhysicActor;
+		geom->active = false;
+		geom->pos = pos;
+		geom->vel = vel;
+		geom->accelerationForce = force;
+		geom->mass = mass;
 		geom->radius = radius;
 		m_dynamicActors.push_back(geom);
-		//m_dynamicActors[m_numDynamic++] = geom;
-		return &geom->actorInfo;
+		return geom;
 	}
 	return 0;
+}
+
+void Physics::DeleteDynamicActor(PhysicActor *geom)
+{
+	auto it = std::find(m_dynamicActors.begin(), m_dynamicActors.end(), geom);
+	if (it != m_dynamicActors.end())
+	{ 
+		m_dynamicActors.erase(it);
+	}
 }

@@ -124,5 +124,8 @@
     <None Include="3.3.shader.vs">
       <Filter>Archivos de recursos</Filter>
     </None>
+    <None Include="3.3.shader.gs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>

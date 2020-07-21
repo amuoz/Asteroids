@@ -1,5 +1,7 @@
 #include "Actor.h"
 
+#include "Common.h"
+
 Actor::Actor()
 {
 	m_active = true;
@@ -7,7 +9,10 @@ Actor::Actor()
 
 Actor::~Actor()
 {
-	//delete m_physicsActor;
+	std::cout << ">>>>>>>> DELETE ACTOR!!!" << std::endl;
+	g_PhysicsPtr->DeleteDynamicActor(m_physicsActor);
+	delete m_physicsActor;
+	delete m_mesh;
 }
 
 void Actor::SetActive(bool newActive)

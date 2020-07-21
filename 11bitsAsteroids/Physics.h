@@ -32,20 +32,15 @@ public:
 		glm::vec3 accelerationForce;
 
 		ICircleContactReport* report = 0;
-	};
 
-	// physics sphere geometry
-	struct sDynamicGeometryCircle
-	{
 		float radius;
-		PhysicActor actorInfo;
 	};
 
 	Physics(const glm::vec3 &gravity);
 	~Physics();
 
 	void Update(float deltaTime);
-	void UpdateDymanicPos(sDynamicGeometryCircle &geom, float deltaTime);
+	void UpdateDymanicPos(PhysicActor &geom, float deltaTime);
 
 	// sphere collision
 	bool CheckCircleCircleCollision(const glm::vec3 &circle1Pos, float circle1Radius, const glm::vec3 &circle2Pos, float circle2Radius,
@@ -53,13 +48,16 @@ public:
 
 	PhysicActor* AddDynamicActor(const glm::vec3 &pos, const glm::vec3 &vel, float radius, glm::vec3 force = glm::vec3(0.0f), float mass = 1.0f);
 
+	void DeleteDynamicActor(PhysicActor *geom);
+
 private:
 
 	glm::vec3 m_gravityForce;
 
-	//unsigned int m_numDynamic;
-	//sDynamicGeometryCircle *m_dynamicActors[MAX_DYNAMICS];
-	std::vector<sDynamicGeometryCircle*> m_dynamicActors;
+	std::vector<PhysicActor*> m_dynamicActors;
+
+	float m_reportTimer = 5.0f;
+	float m_currentReportTimer;
 };
 
 #endif // !PHYSICS_H

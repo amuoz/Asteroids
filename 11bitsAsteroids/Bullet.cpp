@@ -22,8 +22,7 @@ Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 
 Bullet::~Bullet()
 {
-	delete m_physicsActor;
-	delete m_mesh;
+
 }
 
 void Bullet::Init()
@@ -74,7 +73,5 @@ void Bullet::Update(float deltaTime)
 
 void Bullet::OnContact()
 {
-	std::cout << "*********** Bullet collision ***********" << std::endl;
-	//delete this;
 	m_active = false;
 }

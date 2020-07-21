@@ -25,20 +25,20 @@ class Actor;
 
 // Forwards
 class Physics;
+class TextRenderer;
 
-// FreeType fonts
-struct Character {
-	unsigned int TextureID;  // ID handle of the glyph texture
-	glm::ivec2   Size;       // Size of glyph
-	glm::ivec2   Bearing;    // Offset from baseline to left/top of glyph
-	unsigned int Advance;    // Offset to advance to next glyph
+// Represents the current state of the game
+enum GameState {
+	GAME_ACTIVE,
+	GAME_RESTART
 };
 
 class Game
 {
 public:
-	Game(float forwardVelocity, float angularVelocity, float thrust, float mass, float freq, float freqIncrease, float bulletVelocity, float bulletFrequency);
-	
+	Game(float forwardVelocity, float angularVelocity, float thrust, 
+		float mass, float freq, float freqIncrease, float bulletVelocity, 
+		float bulletFrequency, float explosionDuration);
 	~Game();
 
 	void InitContext();
@@ -57,6 +57,9 @@ public:
 	static void _framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	static void _mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	static void _scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+	// game state
+	GameState m_state;
 
 private:
 	
@@ -102,7 +105,7 @@ private:
 
 	float currentBulletFreq;
 
-	std::map<char, Character> Characters;
+	TextRenderer* m_text;
 };
 
 #endif
