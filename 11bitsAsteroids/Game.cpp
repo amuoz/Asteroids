@@ -96,7 +96,7 @@ void Game::InitContext()
 	// build and compile our shader program
 	// ------------------------------------
 	//ourShader = new Shader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
-	ResourceManager::LoadShader("3.3.shader.vs", "3.3.shader.fs", "3.3.shader.gs", "base");
+	ResourceManager::LoadShader("shaders/shader.vs", "shaders/shader.fs", "shaders/shader.gs", "base");
 
 	srand(glfwGetTime()); // initialize random seed
 }

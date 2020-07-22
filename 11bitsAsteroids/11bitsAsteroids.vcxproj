@@ -47,7 +47,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -74,8 +74,8 @@
     <LibraryPath>C:\MyEngine\OpenGL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\MyEngine\OpenGL\includes;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\MyEngine\OpenGL\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)ThirdParty\includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)ThirdParty\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -174,12 +174,15 @@
     <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="3.3.shader.fs" />
-    <None Include="3.3.shader.gs" />
-    <None Include="3.3.shader.vs" />
     <None Include="config\config.conf" />
-    <None Include="text.fs" />
-    <None Include="text.vs" />
+    <None Include="shaders\shader.fs" />
+    <None Include="shaders\shader.gs" />
+    <None Include="shaders\shader.vs" />
+    <None Include="shaders\text.fs" />
+    <None Include="shaders\text.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="fonts\arial.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
