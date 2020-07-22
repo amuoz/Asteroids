@@ -19,6 +19,8 @@ public:
 	static const string BULLET_VELOCITY;
 	static const string BULLET_FREQUENCY;
 	static const string EXPLOSION_DURATION;
+	static const string RAPID_FIRE;
+	static const string DIFFICULTY_INCREASE;
 
 	Config();
 	~Config();

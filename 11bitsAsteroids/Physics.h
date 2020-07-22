@@ -11,11 +11,7 @@
 
 #define MAX_DYNAMICS 1000
 
-class ICircleContactReport
-{
-public:
-	virtual void OnContact() = 0;
-};
+class ICircleContactReport;
 
 class Physics
 {
@@ -34,6 +30,7 @@ public:
 		ICircleContactReport* report = 0;
 
 		float radius;
+		bool ignoreContact = false;
 	};
 
 	Physics(const glm::vec3 &gravity);
@@ -55,9 +52,6 @@ private:
 	glm::vec3 m_gravityForce;
 
 	std::vector<PhysicActor*> m_dynamicActors;
-
-	float m_reportTimer = 5.0f;
-	float m_currentReportTimer;
 };
 
 #endif // !PHYSICS_H

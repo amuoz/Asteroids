@@ -11,6 +11,8 @@
 #include "Config.h"
 #include "Game.h"
 
+#include "ICircleContactReport.h"
+
 class Mesh;
 class Shader;
 
@@ -35,7 +37,7 @@ public:
 
 	bool OutOfBounds();
 
-	void OnContact() override;
+	void OnContact(Physics::PhysicActor* other) override;
 
 	bool HasExploded();
 

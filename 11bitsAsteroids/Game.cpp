@@ -15,6 +15,8 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #define CONFIG_FILE "config/config.conf"
 
@@ -111,6 +113,7 @@ void Game::InitGame()
 	m_text = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
 	m_text->Load("fonts/arial.ttf", 24);
 
+	gameTime = 0.0f;
 	m_demoFinished = false;
 }
 
@@ -128,6 +131,8 @@ void Game::Update()
 
 	if (this->m_state == GAME_ACTIVE)
 	{
+		gameTime += deltaTime;
+
 		// ..:: PHYSICS ::..
 		g_PhysicsPtr->Update(deltaTime);
 
@@ -135,7 +140,6 @@ void Game::Update()
 		ship->Update(deltaTime);
 		m_AsteroidMgr->Update(deltaTime);
 
-		
 		for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
 		{
 			Actor* actor = (*it);
@@ -181,6 +185,7 @@ void Game::Render()
 	glm::mat4 view = camera->GetViewMatrix();
 	//ourShader->SetMatrix4("view", view);
 	ResourceManager::GetShader("base").SetMatrix4("view", view);
+	ResourceManager::GetShader("base").SetVector3f("color", glm::vec3(1.0f, 0.0f, 0.0f));
 
 	ship->Render(ResourceManager::GetShader("base"));
 
@@ -195,15 +200,22 @@ void Game::Render()
 		}
 	}
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(1) << gameTime;
+	std::string s = stream.str();
+	string scorePanel = "Score: " + s;
+	m_text->RenderText(scorePanel, 50, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
 	if (this->m_state == GAME_RESTART)
 	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		//m_text->RenderText("Press R to retry", 250.0f, this->SCR_HEIGHT / 2.0f, 1.0f);
 		m_text->RenderText("You LOSE!!!", 320.0, SCR_HEIGHT / 2 - 25.0, 1.0, glm::vec3(1.0, 0.0, 0.0));
-		m_text->RenderText("Press R to restart or ESC to quit", 220.0, SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 1.0, 0.0));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		m_text->RenderText("Press R to restart or ESC to quit", 220.0, SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 1.0, 1.0));
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
-
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
 	glfwSwapBuffers(window);
@@ -229,6 +241,7 @@ void Game::Restart()
 	// hot-reload config file
 	g_Config->Load(CONFIG_FILE);
 
+	gameTime = 0.0f;
 	m_demoFinished = false;
 	this->m_state = GAME_ACTIVE;
 }
@@ -284,7 +297,11 @@ void Game::processInput(GLFWwindow* window, float deltaTime)
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
 		{
-			currentBulletFreq = g_Config->GetValue(Config::BULLET_FREQUENCY);
+			if (g_Config->GetValue(Config::RAPID_FIRE) == 1.0f)
+			{
+				currentBulletFreq = g_Config->GetValue(Config::BULLET_FREQUENCY);
+			}
+			
 		}
 	}
 

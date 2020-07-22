@@ -13,6 +13,18 @@ AsteroidMgr::AsteroidMgr()
 	m_timeAccum = 0.0f;
 	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
 	m_pool = new AsteroidPool<Asteroid>();
+	
+	// green		40, 180, 99
+	// yellow		244, 208, 63
+	// orange		241, 150, 25
+	// red			234, 50, 38
+	m_colors[3] = glm::vec3(40.0f / 255, 180.0f / 255, 99.0f / 255);
+	m_colors[2] = glm::vec3(244.0f / 255, 208.0f / 255, 63.0f / 255);
+	m_colors[1] = glm::vec3(241.0f / 255, 150.0f / 255, 25.0f / 255);
+	m_colors[0] = glm::vec3(234.0f / 255, 50.0f / 255, 38.0f / 255);
+	
+	m_lastDifficultyIndex = 3;
+	m_currentForwardVelocity = g_Config->GetValue(Config::FORWARD_VELOCITY);
 }
 
 AsteroidMgr::~AsteroidMgr()
@@ -28,9 +40,16 @@ void AsteroidMgr::Update(float deltaTime)
 	m_timeAccum += deltaTime;
 	// spawn freq increases over time
 	m_currentFreq -= g_Config->GetValue(Config::FREQUENCY_INCREASE) * deltaTime;
-	// clam max freq
+	// clamp max freq
 	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, g_Config->GetValue(Config::FREQUENCY)));
 	//std::cout << "Frequency: " << m_currentFreq << std::endl;
+
+	m_difficultyIndex = std::trunc(m_currentFreq / (g_Config->GetValue(Config::FREQUENCY) / 4));
+	if (m_lastDifficultyIndex != m_difficultyIndex)
+	{
+		m_currentForwardVelocity *= g_Config->GetValue(Config::DIFFICULTY_INCREASE);
+	}
+	m_lastDifficultyIndex = m_difficultyIndex;
 
 	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
 	{
@@ -75,13 +94,25 @@ void AsteroidMgr::Reset()
 		it = m_asteroids.erase(it);
 		m_pool->returnAsteroid(asteroid);
 	}
+
 	m_timeAccum = 0.0f;
 	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
+	m_lastDifficultyIndex = 3;
+	m_currentForwardVelocity = g_Config->GetValue(Config::FORWARD_VELOCITY);
 }
 
 void AsteroidMgr::SpawnAsteroid()
 {
 	Asteroid* asteroid = m_pool->getAsteroid();
+	asteroid->SetColor(m_colors[m_difficultyIndex]);
+
+	float offset = 1.0f;
+	// 1. translation: displace along circle with 'radius' in range [-offset, offset]
+	float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+
+
+	asteroid->m_physicsActor->vel = glm::vec3(displacement, -(m_currentForwardVelocity), 0.0f);
+	asteroid->m_physicsActor->ignoreContact = true;
 	// activate actor
 	asteroid->SetActive(true);
 	m_asteroids.push_back(asteroid);

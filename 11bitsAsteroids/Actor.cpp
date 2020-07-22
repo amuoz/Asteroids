@@ -18,3 +18,8 @@ void Actor::SetActive(bool newActive)
 {
 	m_physicsActor->active = newActive;
 }
+
+void Actor::SetColor(glm::vec3 color)
+{
+	m_color = color;
+}

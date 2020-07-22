@@ -100,6 +100,10 @@
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -157,6 +161,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="ICircleContactReport.h" />
     <ClInclude Include="IPoolable.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="AsteroidPool.h" />
@@ -172,6 +177,9 @@
     <None Include="3.3.shader.fs" />
     <None Include="3.3.shader.gs" />
     <None Include="3.3.shader.vs" />
+    <None Include="config\config.conf" />
+    <None Include="text.fs" />
+    <None Include="text.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

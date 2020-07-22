@@ -14,6 +14,9 @@ const string Config::FREQUENCY_INCREASE = "FREQUENCY_INCREASE";
 const string Config::BULLET_VELOCITY = "BULLET_VELOCITY";
 const string Config::BULLET_FREQUENCY = "BULLET_FREQUENCY";
 const string Config::EXPLOSION_DURATION = "EXPLOSION_DURATION";
+const string Config::RAPID_FIRE = "RAPID_FIRE";
+const string Config::DIFFICULTY_INCREASE = "DIFFICULTY_INCREASE";
+
 
 Config::Config()
 {

@@ -116,6 +116,9 @@
     <ClInclude Include="stb_image.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="ICircleContactReport.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="3.3.shader.fs">
@@ -125,6 +128,13 @@
       <Filter>Archivos de recursos</Filter>
     </None>
     <None Include="3.3.shader.gs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="config\config.conf" />
+    <None Include="text.fs">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="text.vs">
       <Filter>Archivos de recursos</Filter>
     </None>
   </ItemGroup>

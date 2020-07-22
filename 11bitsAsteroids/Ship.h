@@ -5,6 +5,10 @@
 #include "Mesh.h"
 #include "Physics.h"
 
+#include "ICircleContactReport.h"
+
+#define HORIZONTAL_BOUND 12.0f
+
 const float SHIP_SPEED = 5.0f;
 
 //extern Physics* g_PhysicsPtr;
@@ -25,6 +29,7 @@ public:
 	float m_radius;
 	float m_thrust;
 	float m_mass;
+	glm::vec3 m_color;
 
 	bool m_alive;
 
@@ -44,6 +49,7 @@ public:
 		m_velocity = glm::vec3(0.0f);
 		m_thrust = thrust;
 		m_mass = mass;
+		m_color = glm::vec3(1.0f);
 
 		m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), mass);
 		m_physicsActor->active = true;
@@ -107,9 +113,9 @@ public:
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, m_position);
 		model = glm::scale(model, m_scale);
-		
 		shader.SetMatrix4("model", model);
-
+		
+		shader.SetVector3f("color", m_color);
 		shader.SetFloat("time", 0.0f);
 
 		m_mesh->Draw(shader);
@@ -118,6 +124,17 @@ public:
 	void Update(float deltaTime)
 	{
 		m_physicsActor->accelerationForce = glm::vec3(0.0f);
+
+		if (m_position.x < -HORIZONTAL_BOUND)
+		{
+			m_position.x = HORIZONTAL_BOUND;
+			m_physicsActor->pos = m_position;
+		}
+		else if (m_position.x > HORIZONTAL_BOUND)
+		{
+			m_position.x = -HORIZONTAL_BOUND;
+			m_physicsActor->pos = m_position;
+		}
 	}
 
 	// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
@@ -136,7 +153,7 @@ public:
 			
 	}
 
-	void OnContact() override
+	void OnContact(Physics::PhysicActor* other) override
 	{
 		m_alive = false;
 	}

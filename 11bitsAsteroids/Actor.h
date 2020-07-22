@@ -20,6 +20,8 @@ public:
 	
 	void SetActive(bool newActive);
 
+	void SetColor(glm::vec3 color);
+
 	inline bool IsActive() { return m_active; };
 
 	// physics pointer
@@ -32,6 +34,8 @@ protected:
 	glm::vec3 m_rotAxis;
 	float m_radius;
 	glm::vec3 m_velocity;
+
+	glm::vec3 m_color;
 
 	bool m_active;
 

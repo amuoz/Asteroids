@@ -3,8 +3,11 @@
 
 #include <string>
 #include <iostream>
-//#include <vector>
 #include <list>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "AsteroidPool.h"
 
@@ -31,11 +34,19 @@ private:
 	// Asteroid pool
 	AsteroidPool<Asteroid>* m_pool;
 
+	// difficulty colors
+	glm::vec3 m_colors[4];
+
 	// time accumulation to spawn
 	float m_timeAccum;
 
 	// current spawn frequency
 	float m_currentFreq;
+
+	// difficulty variables
+	int m_difficultyIndex;
+	int m_lastDifficultyIndex;
+	float m_currentForwardVelocity;
 
 	void SpawnAsteroid();
 

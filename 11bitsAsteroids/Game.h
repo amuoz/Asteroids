@@ -81,6 +81,7 @@ private:
 	// timing
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
+	float gameTime = 0.0f;
 
 	unsigned int amount = 10;
 

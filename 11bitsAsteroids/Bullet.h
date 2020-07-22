@@ -3,6 +3,8 @@
 
 #include "Actor.h"
 
+#include "ICircleContactReport.h"
+
 class Bullet: public Actor, ICircleContactReport
 {
 public:
@@ -15,7 +17,7 @@ public:
 	void Render(Shader shader) override;
 	void Update(float deltaTime) override;
 
-	void OnContact() override;
+	void OnContact(Physics::PhysicActor* other) override;
 };
 
 #endif

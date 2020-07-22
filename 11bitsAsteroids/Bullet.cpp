@@ -14,6 +14,7 @@ Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = vel;
 	m_active = true;
+	m_color = glm::vec3(1.0f);
 
 	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius);
 	m_physicsActor->active = true;
@@ -58,6 +59,7 @@ void Bullet::Render(Shader shader)
 	model = glm::scale(model, m_scale);
 	//model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
 
+	shader.SetVector3f("color", m_color);
 	shader.SetMatrix4("model", model);
 
 	m_mesh->Draw(shader);
@@ -71,7 +73,7 @@ void Bullet::Update(float deltaTime)
 	}
 }
 
-void Bullet::OnContact()
+void Bullet::OnContact(Physics::PhysicActor* other)
 {
 	m_active = false;
 }

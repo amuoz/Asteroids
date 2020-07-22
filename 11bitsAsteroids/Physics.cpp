@@ -1,5 +1,7 @@
 #include "Physics.h"
 
+#include "ICircleContactReport.h"
+
 #include <iostream>
 
 Physics::Physics(const glm::vec3 &gravity)
@@ -21,13 +23,6 @@ Physics::~Physics()
 
 void Physics::Update(float deltaTime)
 {
-	m_currentReportTimer += deltaTime;
-	if (m_currentReportTimer >= m_reportTimer)
-	{
-		m_currentReportTimer -= m_reportTimer;
-		std::cout << "********* Total dynamic objects: " << m_dynamicActors.size() << std::endl;
-	}
-
 	for (PhysicActor* dynamicActor : m_dynamicActors)
 	{
 		if (dynamicActor->active)
@@ -60,17 +55,22 @@ void Physics::UpdateDymanicPos(PhysicActor &geom, float deltaTime)
 			if (CheckCircleCircleCollision(geom.pos, geom.radius, dynamicActor->pos, dynamicActor->radius, col, normal))
 			{
 				// push actor in normal direction
-				//geom.actorInfo.vel = normal * glm::length(geom.actorInfo.vel);
+				if (geom.ignoreContact && dynamicActor->ignoreContact)
+				{
+					geom.vel = normal * glm::length(geom.vel);
+					dynamicActor->vel = -normal * glm::length(dynamicActor->vel);
+				}
+								
 				geom.pos = col;
 				
 				// notify collision
 				if (geom.report)
 				{
-					geom.report->OnContact();
+					geom.report->OnContact(dynamicActor);
 				}
 				if (dynamicActor->active && dynamicActor->report)
 				{
-					dynamicActor->report->OnContact();
+					dynamicActor->report->OnContact(&geom);
 				}
 			}
 		}

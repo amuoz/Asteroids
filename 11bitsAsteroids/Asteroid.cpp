@@ -5,8 +5,8 @@
 #include <GLFW/glfw3.h>
 
 #define PI 3.1415926535897932
-#define VERTICAL_BOUND 10.0f
-
+#define VERTICAL_BOUND 15.0f
+#define HORIZONTAL_BOUND 20.0f
 
 //extern Game *g_game;
 //extern Physics* g_PhysicsPtr;
@@ -150,6 +150,7 @@ void Asteroid::Render(Shader shader)
 
 	shader.SetMatrix4("model", model);
 
+	shader.SetVector3f("color", m_color);
 	shader.SetFloat("time", m_explosionTime);
 
 	m_mesh->Draw(shader);
@@ -168,13 +169,6 @@ void Asteroid::Update(float deltaTime)
 	}
 }
 
-/*
-void Asteroid::SetActive(bool newActive)
-{
-	m_physicsActor->active = newActive;
-}
-*/
-
 float Asteroid::Randf(float min, float max)
 {
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
@@ -182,17 +176,23 @@ float Asteroid::Randf(float min, float max)
 
 bool Asteroid::OutOfBounds()
 {
-	if (m_position.y < VERTICAL_BOUND * -1.0f)
+	if (m_position.y < -VERTICAL_BOUND 
+		|| m_position.y > VERTICAL_BOUND*2 
+		|| m_position.x < -HORIZONTAL_BOUND 
+		|| m_position.x > HORIZONTAL_BOUND)
 	{
 		return true;
 	}
 	return false;
 }
 
-void Asteroid::OnContact()
+void Asteroid::OnContact(Physics::PhysicActor* other)
 {
-	m_explosion = true;
-	m_physicsActor->active = false;
+	if (!other->ignoreContact)
+	{
+		m_explosion = true;
+		m_physicsActor->active = false;
+	}
 }
 
 bool Asteroid::HasExploded()
@@ -202,11 +202,11 @@ bool Asteroid::HasExploded()
 
 void Asteroid::Reset()
 {	
-	float offset = 10.0f;
+	float offset = 8.0f;
 	// 1. translation: displace along circle with 'radius' in range [-offset, offset]
 	float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
 	float x = displacement;
-	float y = (rand() % 20) + 10.0f; // keep height of field smaller compared to width of x and z
+	float y = (rand() % 10) + 10.0f; // keep height of field smaller compared to width of x and z
 
 	// 2. scale: scale between 0.05 and 0.25f / 0.5 and 1
 	float scale = (rand() % 100) / 100.0f + 0.5;
@@ -223,11 +223,13 @@ void Asteroid::Reset()
 	m_exploded = false;
 	m_explosion = false;
 	m_explosionTime = 0.0f;
+	m_color	= glm::vec3(40.0f/255, 180.0f/255, 100.0f/255);
 
 	if (m_physicsActor)
 	{
 		SetActive(false);
 		m_physicsActor->pos = m_position;
 		m_physicsActor->report = this;
+		m_physicsActor->ignoreContact = true;
 	}
 }
