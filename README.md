@@ -14,4 +14,4 @@ Developed with my custom C++ engine.
 * FreeType
 * VS2017
 
-![Asteroids](https://imgur.com/a/JUG0R1F)
+https://imgur.com/J1pOJGa
