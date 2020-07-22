@@ -5,12 +5,9 @@
 #include <GLFW/glfw3.h>
 
 #define PI 3.1415926535897932
+
 #define VERTICAL_BOUND 15.0f
 #define HORIZONTAL_BOUND 20.0f
-
-//extern Game *g_game;
-//extern Physics* g_PhysicsPtr;
-
 
 Asteroid::Asteroid()
 {
@@ -24,8 +21,6 @@ Asteroid::Asteroid()
 
 Asteroid::~Asteroid()
 {
-	//delete m_physicsActor;
-	delete m_mesh;
 }
 
 void Asteroid::Init()
@@ -119,12 +114,6 @@ void Asteroid::Init()
 	vertices.push_back(vertex);
 	vertex.Position = glm::vec3(0.5f, -0.5f, 0.5f);
 	vertices.push_back(vertex);
-
-	/*
-	indices.push_back(0);
-	indices.push_back(1);
-	indices.push_back(2);
-	*/
 
 	m_mesh = new Mesh(vertices, indices, textures);
 }

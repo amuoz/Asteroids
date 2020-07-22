@@ -13,21 +13,16 @@ class Actor
 public:
 
 	Actor();
-	~Actor();
+	virtual ~Actor();
 
 	virtual void Render(Shader shader) = 0;
 	virtual void Update(float deltaTime) = 0;
 	
 	void SetActive(bool newActive);
-
 	void SetColor(glm::vec3 color);
 
 	inline bool IsActive() { return m_active; };
 
-	// physics pointer
-	Physics::PhysicActor* m_physicsActor = 0;
-
-protected:
 	glm::vec3 m_position;
 	glm::vec3 m_scale;
 	float m_rotAngle;
@@ -39,7 +34,11 @@ protected:
 
 	bool m_active;
 
+	// physics pointer
+	Physics::PhysicActor* m_physicsActor = 0;
+
 	Mesh* m_mesh = 0;
+
 };
 
 #endif
