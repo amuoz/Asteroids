@@ -185,7 +185,7 @@ void Game::Render()
 	glm::mat4 view = camera->GetViewMatrix();
 	//ourShader->SetMatrix4("view", view);
 	ResourceManager::GetShader("base").SetMatrix4("view", view);
-	ResourceManager::GetShader("base").SetVector3f("color", glm::vec3(1.0f, 0.0f, 0.0f));
+	ResourceManager::GetShader("base").SetVector4f("color", glm::vec4(1.0f));
 
 	ship->Render(ResourceManager::GetShader("base"));
 

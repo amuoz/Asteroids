@@ -59,7 +59,7 @@ void Bullet::Render(Shader shader)
 	model = glm::scale(model, m_scale);
 	//model = glm::rotate(model, (float)glfwGetTime() * m_rotAngle, m_rotAxis);
 
-	shader.SetVector3f("color", m_color);
+	shader.SetVector4f("color", glm::vec4(m_color, 1.0f));
 	shader.SetMatrix4("model", model);
 
 	m_mesh->Draw(shader);

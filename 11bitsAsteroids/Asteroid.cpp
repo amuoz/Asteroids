@@ -150,7 +150,7 @@ void Asteroid::Render(Shader shader)
 
 	shader.SetMatrix4("model", model);
 
-	shader.SetVector3f("color", m_color);
+	shader.SetVector4f("color", glm::vec4(m_color, 1-m_explosionTime));
 	shader.SetFloat("time", m_explosionTime);
 
 	m_mesh->Draw(shader);

@@ -115,7 +115,7 @@ public:
 		model = glm::scale(model, m_scale);
 		shader.SetMatrix4("model", model);
 		
-		shader.SetVector3f("color", m_color);
+		shader.SetVector4f("color", glm::vec4(m_color, 1.0f));
 		shader.SetFloat("time", 0.0f);
 
 		m_mesh->Draw(shader);

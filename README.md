@@ -15,5 +15,3 @@ Developed with my custom C++ engine.
 * VS2017
 
 ![Asteroids](https://i.imgur.com/J1pOJGa.gif)
-
-https://imgur.com/J1pOJGa
