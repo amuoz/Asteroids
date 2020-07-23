@@ -11,7 +11,7 @@ Developed with my custom C++ engine.
 * Custom **physics and collisions**
 * Generic entity **pool**
 * Custom **vertex** shader, **geometry** shader and **fragment** shader.
-* FreeType (you need to download the dll)
+* FreeType
 * VS2017
 
 ![Asteroids](https://i.imgur.com/J1pOJGa.gif)
