@@ -17,8 +17,10 @@ public:
 
 	virtual void Render(Shader shader) = 0;
 	virtual void Update(float deltaTime) = 0;
-	
+	virtual void Reset();
+
 	void SetActive(bool newActive);
+	void SetDelete(bool newDelete);
 	void SetColor(glm::vec3 color);
 
 	inline bool IsActive() { return m_active; };
@@ -33,6 +35,7 @@ public:
 	glm::vec3 m_color;
 
 	bool m_active;
+	bool m_delete;
 
 	// physics pointer
 	Physics::PhysicActor* m_physicsActor = 0;

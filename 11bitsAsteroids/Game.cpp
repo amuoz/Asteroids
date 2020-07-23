@@ -104,15 +104,21 @@ void Game::InitGame()
 	g_Config->Load(CONFIG_FILE);
 
 	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
+	
 	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
-	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f), g_Config->GetValue(Config::THRUST), g_Config->GetValue(Config::MASS));
+	
+	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f));
+	m_scene.push_back(ship);
+	
 	m_AsteroidMgr = new AsteroidMgr();
+	m_scene.push_back(m_AsteroidMgr);
 	
 	// text renderer with freetype
 	m_text = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
 	m_text->Load("fonts/arial.ttf", 24);
 
 	gameTime = 0.0f;
+	m_score = 0;
 	m_demoFinished = false;
 
 	// Projection and camera is fixed no need to update in every tick
@@ -148,12 +154,7 @@ void Game::Update(float deltaTime)
 		currentBulletFreq += deltaTime;
 		gameTime += deltaTime;
 
-		// ..:: PHYSICS ::..
-		g_PhysicsPtr->Update(deltaTime);
-
 		// ..:: LOGIC ::..
-		ship->Update(deltaTime);
-		m_AsteroidMgr->Update(deltaTime);
 		for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
 		{
 			Actor* actor = (*it);
@@ -170,10 +171,15 @@ void Game::Update(float deltaTime)
 			}			
 		}
 
-		if (!ship->m_alive) 
+		// ..:: PHYSICS ::..
+		float fixedUpdateFreq = 1.0f / 60.0f;	
+		m_physicsTimeStepAccum += deltaTime;
+		while (m_physicsTimeStepAccum > fixedUpdateFreq)
 		{
-			this->m_state = GAME_RESTART;
+			m_physicsTimeStepAccum -= fixedUpdateFreq;
+			g_PhysicsPtr->Update(fixedUpdateFreq);	// fixed physic timestep 
 		}
+		
 	}
 
 }
@@ -195,9 +201,7 @@ void Game::Render()
 	glm::mat4 view = camera->GetViewMatrix();
 	ResourceManager::GetShader("base").SetMatrix4("view", view);
 
-	// Render entities
-	ship->Render(ResourceManager::GetShader("base"));
-	m_AsteroidMgr->Render(ResourceManager::GetShader("base"));
+	// Render scene
 	for (Actor* actor: m_scene)
 	{
 		if (actor->IsActive()) 
@@ -221,8 +225,10 @@ void Game::RenderUI()
 
 	std::stringstream stream;
 	stream << std::fixed << std::setprecision(1) << gameTime;
-	string scorePanel = "Time: " + stream.str();
-	m_text->RenderText(scorePanel, 50, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
+	string timePanel = "Time: " + stream.str();
+	string scorePanel = "Score: " + to_string(m_score);
+	m_text->RenderText(timePanel, 50, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
+	m_text->RenderText(scorePanel, 650, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
 
 	if (m_state == GAME_RESTART)
 	{
@@ -235,24 +241,28 @@ void Game::RenderUI()
 
 void Game::Restart()
 {
-	m_AsteroidMgr->Reset();
-	ship->Reset(glm::vec3(0.0f, -6.0f, 0.0f));
+	// hot-reload config file
+	g_Config->Load(CONFIG_FILE);
 
 	for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
 	{
 		Actor* actor = (*it);
-		actor->m_physicsActor->active = false;
-		it = m_scene.erase(it);
-		delete actor;
+		if (actor->m_delete)	// clean delete actors
+		{
+			actor->m_physicsActor->active = false;
+			it = m_scene.erase(it);
+			delete actor;
+		}
+		else
+		{
+			actor->Reset();
+			it++;
+		}
 	}
-	m_scene.clear();
-	// deallocating the memory
-	std::list<Actor*>().swap(m_scene);
-
-	// hot-reload config file
-	g_Config->Load(CONFIG_FILE);
 
 	gameTime = 0.0f;
+	m_score = 0;
+	m_physicsTimeStepAccum = 0.0f;
 	m_demoFinished = false;
 	m_state = GAME_ACTIVE;
 }
@@ -276,10 +286,12 @@ void Game::ProcessInput(GLFWwindow* window, float deltaTime)
 	// Active inputs
 	if (this->m_state == GAME_ACTIVE)
 	{
+		ship->m_physicsActor->accelerationForce = glm::vec3(0.0f);
+
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
 			ship->m_physicsActor->accelerationForce = glm::vec3(-(ship->m_thrust), 0.0f, 0.0f);
-		}
+		}	
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
 			ship->m_physicsActor->accelerationForce = glm::vec3(ship->m_thrust, 0.0f, 0.0f);
@@ -288,10 +300,12 @@ void Game::ProcessInput(GLFWwindow* window, float deltaTime)
 		{
 			if (currentBulletFreq >= g_Config->GetValue(Config::BULLET_FREQUENCY))
 			{
+				currentBulletFreq = 0.0f;
+
 				glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
 				Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->GetValue(Config::BULLET_VELOCITY), 0.0f));
+				bullet->SetDelete(true);	// delete from scene on restart
 				m_scene.push_back(bullet);
-				currentBulletFreq = 0.0f;
 			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
@@ -307,6 +321,7 @@ void Game::ProcessInput(GLFWwindow* window, float deltaTime)
 	{
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
 		{
+			std::cout << "==================== RESTART GAME =======================" << std::endl;
 			Restart();	// Restart game
 		}
 	}

@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "Mesh.h"
 
-#define VERTICAL_BOUND 10.0f
+#define VERTICAL_BOUND 9.0f
 
 Bullet::Bullet(const glm::vec3 &pos, float scale, const glm::vec3 &vel)
 {

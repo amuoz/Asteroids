@@ -1,11 +1,13 @@
 #include "Ship.h"
 
 #include "Common.h"
+#include "Config.h"
 #include "Mesh.h"
+#include "Game.h"
 
 #define HORIZONTAL_BOUND 12.0f
 
-Ship::Ship(const glm::vec3 &pos, const glm::vec3 &scale, const float thrust, const float mass)
+Ship::Ship(const glm::vec3 &pos, const glm::vec3 &scale)
 {
 	Init();
 
@@ -15,11 +17,11 @@ Ship::Ship(const glm::vec3 &pos, const glm::vec3 &scale, const float thrust, con
 	m_scale = scale;
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = glm::vec3(0.0f);
-	m_thrust = thrust;
-	m_mass = mass;
+	m_thrust = g_Config->GetValue(Config::THRUST);
+	m_mass = g_Config->GetValue(Config::MASS);
 	m_color = glm::vec3(1.0f);
 
-	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), mass);
+	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), m_mass);
 	m_physicsActor->active = true;
 	m_physicsActor->report = this;
 }
@@ -84,7 +86,7 @@ void Ship::Render(Shader shader)
 
 void Ship::Update(float deltaTime)
 {
-	m_physicsActor->accelerationForce = glm::vec3(0.0f);
+	//m_physicsActor->accelerationForce = glm::vec3(0.0f);
 
 	if (m_position.x < -HORIZONTAL_BOUND)
 	{
@@ -96,6 +98,11 @@ void Ship::Update(float deltaTime)
 		m_position.x = -HORIZONTAL_BOUND;
 		m_physicsActor->pos = m_position;
 	}
+
+	if (!m_alive)
+	{
+		g_game->m_state = GAME_RESTART;
+	}
 }
 
 void Ship::OnContact(Physics::PhysicActor* other)
@@ -103,10 +110,13 @@ void Ship::OnContact(Physics::PhysicActor* other)
 	m_alive = false;
 }
 
-void Ship::Reset(const glm::vec3 &pos)
+void Ship::Reset()
 {
-	m_position = pos;
+	m_position = glm::vec3(0.0f, -6.0f, 0.0f);
 	m_physicsActor->pos = m_position;
+	m_thrust = g_Config->GetValue(Config::THRUST);
+	m_mass = g_Config->GetValue(Config::MASS);
+	m_physicsActor->mass = m_mass;
 	m_physicsActor->vel = glm::vec3(0.0f);
 	m_alive = true;
 }

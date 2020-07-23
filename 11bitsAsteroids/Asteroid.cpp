@@ -181,6 +181,7 @@ void Asteroid::OnContact(Physics::PhysicActor* other)
 	{
 		m_explosion = true;
 		m_physicsActor->active = false;
+		++(g_game->m_score);
 	}
 }
 
@@ -207,7 +208,7 @@ void Asteroid::Reset()
 	m_scale = glm::vec3(scale);
 	m_rotAngle = rotAngle;
 	m_rotAxis = glm::vec3((float)rand(), (float)rand(), (float)rand());
-	m_radius = m_scale.x / 2.0f;
+	m_radius = m_scale.x / 1.2f;
 	m_velocity = glm::vec3(0.0f, -(g_Config->GetValue(Config::FORWARD_VELOCITY)), 0.0f);
 	m_exploded = false;
 	m_explosion = false;

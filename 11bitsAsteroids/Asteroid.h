@@ -31,8 +31,6 @@ public:
 	void Render(Shader shader) override;
 	void Update(float deltaTime) override;
 
-	//void SetActive(bool newActive);
-
 	float Randf(float min, float max);
 
 	bool OutOfBounds();

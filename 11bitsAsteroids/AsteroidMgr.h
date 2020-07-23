@@ -10,20 +10,20 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "AsteroidPool.h"
+#include "Actor.h"
 
 // forwards
 class Asteroid;
 class Shader;
 
-class AsteroidMgr
+class AsteroidMgr: public Actor
 {
 public:
 	AsteroidMgr();
 	~AsteroidMgr();
 
-	void Update(float deltaTime);
-
-	void Render(Shader shader);
+	void Update(float deltaTime) override;
+	void Render(Shader shader) override;
 
 	void Reset();
 

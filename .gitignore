@@ -388,3 +388,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+!freetype.dll
+!glfw3.dll

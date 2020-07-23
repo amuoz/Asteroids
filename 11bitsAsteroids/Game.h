@@ -1,3 +1,12 @@
+/*****************************************************************
+** Asteroids is a simple spaceship in asteroid field game.
+** Developed with custom C++ engine.
+** OpenGL3,	GLFW, GLAD, GLM, FreeType, VS2017
+** Custom physics and collisions
+** Generic entity pool, abstract Actor class
+** Custom vertex shader, geometry shader and fragment shader
+******************************************************************/
+
 #ifndef	GAME_H
 #define GAME_H
 
@@ -45,6 +54,9 @@ public:
 	const unsigned int SCR_WIDTH = 800;
 	const unsigned int SCR_HEIGHT = 600;
 
+	GameState m_state;
+	int m_score;
+
 private:
 	
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -72,14 +84,13 @@ private:
 
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
+	float m_physicsTimeStepAccum = 0.0f;
 	float gameTime = 0.0f;
 
 	float currentBulletFreq;
 
 	// scene actors
 	std::list<Actor*> m_scene;
-
-	GameState m_state;
 };
 
 #endif

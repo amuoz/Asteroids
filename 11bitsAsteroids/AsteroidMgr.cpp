@@ -88,6 +88,7 @@ void AsteroidMgr::Render(Shader shader)
 
 void AsteroidMgr::Reset()
 {
+	// return all asteroids to the pool
 	for (std::list<Asteroid*>::iterator it = m_asteroids.begin(); it != m_asteroids.end();)
 	{
 		Asteroid* asteroid = (*it);
@@ -104,15 +105,16 @@ void AsteroidMgr::Reset()
 void AsteroidMgr::SpawnAsteroid()
 {
 	Asteroid* asteroid = m_pool->getAsteroid();
+	asteroid->Reset();
+
+	// current difficulty configuration
+	// --------------------------------
 	asteroid->SetColor(m_colors[m_difficultyIndex]);
-
 	float offset = 1.0f;
-	// 1. translation: displace along circle with 'radius' in range [-offset, offset]
 	float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-
-
 	asteroid->m_physicsActor->vel = glm::vec3(displacement, -(m_currentForwardVelocity), 0.0f);
-	asteroid->m_physicsActor->ignoreContact = true;
+	//asteroid->m_physicsActor->ignoreContact = true;
+	
 	// activate actor
 	asteroid->SetActive(true);
 	m_asteroids.push_back(asteroid);

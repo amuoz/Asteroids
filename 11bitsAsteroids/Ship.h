@@ -19,7 +19,7 @@ class Ship: public Actor, ICircleContactReport
 {
 public:
 
-	Ship(const glm::vec3 &pos, const glm::vec3 &scale, const float thrust, const float mass);
+	Ship(const glm::vec3 &pos, const glm::vec3 &scale);
 	~Ship();
 
 	void Init();
@@ -30,7 +30,7 @@ public:
 
 	void OnContact(Physics::PhysicActor* other) override;
 
-	void Reset(const glm::vec3 &pos);
+	void Reset() override;
 
 public:
 
