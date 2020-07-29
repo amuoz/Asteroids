@@ -14,4 +14,4 @@ Developed with my custom C++ engine.
 * FreeType
 * VS2017
 
-![Asteroids](https://i.imgur.com/J1pOJGa.gif)
+![Asteroids](https://i.imgur.com/t6x64U4.gif)
