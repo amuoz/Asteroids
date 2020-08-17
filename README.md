@@ -2,7 +2,7 @@
 
 Simple spaceship in asteroid field game.
 
-![README.pdf](https://github.com/amuoz/Asteroids/blob/master/README.pdf)
+[README.pdf](https://github.com/amuoz/Asteroids/blob/master/README.pdf)
 
 Developed with my custom C++ engine.
 
