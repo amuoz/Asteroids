@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "Mesh.h"
 #include "Game.h"
+#include "Bullet.h"
 
 #define HORIZONTAL_BOUND 12.0f
 
@@ -17,8 +18,8 @@ Ship::Ship(const glm::vec3 &pos, const glm::vec3 &scale)
 	m_scale = scale;
 	m_radius = m_scale.x / 2.0f;
 	m_velocity = glm::vec3(0.0f);
-	m_thrust = g_Config->GetValue(Config::THRUST);
-	m_mass = g_Config->GetValue(Config::MASS);
+	m_thrust = Config::GetInstance()->GetValue(Config::THRUST);
+	m_mass = Config::GetInstance()->GetValue(Config::MASS);
 	m_color = glm::vec3(1.0f);
 
 	m_physicsActor = g_PhysicsPtr->AddDynamicActor(m_position, m_velocity, m_radius, glm::vec3(0.0f), m_mass);
@@ -101,7 +102,7 @@ void Ship::Update(float deltaTime)
 
 	if (!m_alive)
 	{
-		g_game->m_state = GAME_RESTART;
+		g_game->SetGameState(GameState::GAME_RESTART);
 	}
 }
 
@@ -114,9 +115,23 @@ void Ship::Reset()
 {
 	m_position = glm::vec3(0.0f, -6.0f, 0.0f);
 	m_physicsActor->pos = m_position;
-	m_thrust = g_Config->GetValue(Config::THRUST);
-	m_mass = g_Config->GetValue(Config::MASS);
+	m_thrust = Config::GetInstance()->GetValue(Config::THRUST);
+	m_mass = Config::GetInstance()->GetValue(Config::MASS);
 	m_physicsActor->mass = m_mass;
 	m_physicsActor->vel = glm::vec3(0.0f);
 	m_alive = true;
+}
+
+void Ship::SetForceDirection(float direction)
+{
+	GetPhysicsActor()->accelerationForce = glm::vec3(direction*(m_thrust), 0.0f, 0.0f);
+
+}
+
+Bullet* Ship::Fire()
+{
+	glm::vec3 bulletPosition = glm::vec3(GetPosition()) + glm::vec3(0.0f, 0.8f, 0.0f);
+	Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, Config::GetInstance()->GetValue(Config::BULLET_VELOCITY), 0.0f));
+	bullet->SetDelete(true);	// delete from scene on restart
+	return bullet;
 }

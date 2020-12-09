@@ -7,13 +7,24 @@
 #include "stb_image.h"
 
 // Instantiate static variables
-std::map<std::string, Texture2D>    ResourceManager::Textures;
-std::map<std::string, Shader>       ResourceManager::Shaders;
+ResourceManager* ResourceManager::m_instance = nullptr;
 
+ResourceManager::ResourceManager()
+{
+
+}
+
+ResourceManager::~ResourceManager()
+{
+	if (m_instance)
+	{
+		delete m_instance;
+	}
+}
 
 Shader ResourceManager::LoadShader(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, std::string name)
 {
-	Shaders[name] = loadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
+	Shaders[name] = LoadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
 	return Shaders[name];
 }
 
@@ -24,7 +35,7 @@ Shader ResourceManager::GetShader(std::string name)
 
 Texture2D ResourceManager::LoadTexture(const char *file, bool alpha, std::string name)
 {
-	Textures[name] = loadTextureFromFile(file, alpha);
+	Textures[name] = LoadTextureFromFile(file, alpha);
 	return Textures[name];
 }
 
@@ -43,7 +54,16 @@ void ResourceManager::Clear()
 		glDeleteTextures(1, &iter.second.ID);
 }
 
-Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile)
+ResourceManager* ResourceManager::GetInstance()
+{
+	if (m_instance == nullptr)
+	{
+		m_instance = new ResourceManager();
+	}
+	return m_instance;
+}
+
+Shader ResourceManager::LoadShaderFromFile(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile)
 {
 	// 1. retrieve the vertex/fragment source code from filePath
 	std::string vertexCode;
@@ -87,7 +107,7 @@ Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *
 	return shader;
 }
 
-Texture2D ResourceManager::loadTextureFromFile(const char *file, bool alpha)
+Texture2D ResourceManager::LoadTextureFromFile(const char *file, bool alpha)
 {
 	// create texture object
 	Texture2D texture;

@@ -11,7 +11,7 @@
 AsteroidMgr::AsteroidMgr()
 {
 	m_timeAccum = 0.0f;
-	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
+	m_currentFreq = Config::GetInstance()->GetValue(Config::FREQUENCY);
 	m_pool = new AsteroidPool<Asteroid>();
 	
 	// green		40, 180, 99
@@ -24,7 +24,7 @@ AsteroidMgr::AsteroidMgr()
 	m_colors[0] = glm::vec3(234.0f / 255, 50.0f / 255, 38.0f / 255);
 	
 	m_lastDifficultyIndex = 3;
-	m_currentForwardVelocity = g_Config->GetValue(Config::FORWARD_VELOCITY);
+	m_currentForwardVelocity = Config::GetInstance()->GetValue(Config::FORWARD_VELOCITY);
 }
 
 AsteroidMgr::~AsteroidMgr()
@@ -39,15 +39,15 @@ void AsteroidMgr::Update(float deltaTime)
 {
 	m_timeAccum += deltaTime;
 	// spawn freq increases over time
-	m_currentFreq -= g_Config->GetValue(Config::FREQUENCY_INCREASE) * deltaTime;
+	m_currentFreq -= Config::GetInstance()->GetValue(Config::FREQUENCY_INCREASE) * deltaTime;
 	// clamp max freq
-	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, g_Config->GetValue(Config::FREQUENCY)));
+	m_currentFreq = std::max(MAX_FREQ, std::min(m_currentFreq, Config::GetInstance()->GetValue(Config::FREQUENCY)));
 	//std::cout << "Frequency: " << m_currentFreq << std::endl;
 
-	m_difficultyIndex = std::trunc(m_currentFreq / (g_Config->GetValue(Config::FREQUENCY) / 4));
+	m_difficultyIndex = std::trunc(m_currentFreq / (Config::GetInstance()->GetValue(Config::FREQUENCY) / 4));
 	if (m_lastDifficultyIndex != m_difficultyIndex)
 	{
-		m_currentForwardVelocity *= g_Config->GetValue(Config::DIFFICULTY_INCREASE);
+		m_currentForwardVelocity *= Config::GetInstance()->GetValue(Config::DIFFICULTY_INCREASE);
 	}
 	m_lastDifficultyIndex = m_difficultyIndex;
 
@@ -97,9 +97,9 @@ void AsteroidMgr::Reset()
 	}
 
 	m_timeAccum = 0.0f;
-	m_currentFreq = g_Config->GetValue(Config::FREQUENCY);
+	m_currentFreq = Config::GetInstance()->GetValue(Config::FREQUENCY);
 	m_lastDifficultyIndex = 3;
-	m_currentForwardVelocity = g_Config->GetValue(Config::FORWARD_VELOCITY);
+	m_currentForwardVelocity = Config::GetInstance()->GetValue(Config::FORWARD_VELOCITY);
 }
 
 void AsteroidMgr::SpawnAsteroid()
@@ -112,7 +112,7 @@ void AsteroidMgr::SpawnAsteroid()
 	asteroid->SetColor(m_colors[m_difficultyIndex]);
 	float offset = 1.0f;
 	float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
-	asteroid->m_physicsActor->vel = glm::vec3(displacement, -(m_currentForwardVelocity), 0.0f);
+	asteroid->GetPhysicsActor()->vel = glm::vec3(displacement, -(m_currentForwardVelocity), 0.0f);
 	//asteroid->m_physicsActor->ignoreContact = true;
 	
 	// activate actor

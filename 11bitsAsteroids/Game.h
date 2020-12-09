@@ -31,7 +31,7 @@ class Actor;
 class TextRenderer;
 
 // Represents the current state of the game
-enum GameState {
+enum class GameState {
 	GAME_ACTIVE,
 	GAME_RESTART
 };
@@ -47,15 +47,13 @@ public:
 	// Have we finished?
 	inline bool IsFinished() const { return m_demoFinished; }
 
+	int GetScore() { return m_score; }
+	void IncreaseScore() { ++m_score; }
+
+	void SetGameState(GameState newState);
+
 	// callback
 	static void _framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-	// settings
-	const unsigned int SCR_WIDTH = 800;
-	const unsigned int SCR_HEIGHT = 600;
-
-	GameState m_state;
-	int m_score;
 
 private:
 	
@@ -75,22 +73,25 @@ private:
 
 	bool m_demoFinished;
 
-	GLFWwindow* window;
+	GLFWwindow* m_window;
 	
-	Camera* camera;	// camera
-	Ship* ship;	// ship
+	Camera* m_camera;
+	Ship* m_ship;
 	AsteroidMgr* m_AsteroidMgr;
 	TextRenderer* m_text;
 
-	float deltaTime = 0.0f;	// Time between current frame and last frame
-	float lastFrame = 0.0f; // Time of last frame
+	float m_deltaTime = 0.0f;	// Time between current frame and last frame
+	float m_lastFrame = 0.0f; // Time of last frame
 	float m_physicsTimeStepAccum = 0.0f;
-	float gameTime = 0.0f;
-
-	float currentBulletFreq;
+	float m_gameTime = 0.0f;
+	float m_currentBulletFreq;
 
 	// scene actors
 	std::list<Actor*> m_scene;
+
+	GameState m_state;
+
+	int m_score;
 };
 
 #endif

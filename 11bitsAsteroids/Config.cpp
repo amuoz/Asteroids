@@ -16,7 +16,10 @@ const string Config::BULLET_FREQUENCY = "BULLET_FREQUENCY";
 const string Config::EXPLOSION_DURATION = "EXPLOSION_DURATION";
 const string Config::RAPID_FIRE = "RAPID_FIRE";
 const string Config::DIFFICULTY_INCREASE = "DIFFICULTY_INCREASE";
+const string Config::SRC_WIDTH = "SRC_WIDTH";
+const string Config::SRC_HEIGHT = "SRC_HEIGHT";
 
+Config* Config::m_instance = nullptr;
 
 Config::Config()
 {
@@ -25,7 +28,10 @@ Config::Config()
 
 Config::~Config()
 {
-
+	if (m_instance)
+	{
+		delete m_instance;
+	}
 }
 
 void Config::Load(const char * file)
@@ -55,9 +61,18 @@ void Config::Load(const char * file)
 	}
 }
 
-float Config::GetValue(string key)
+float Config::GetValue(string key) const
 {
 	return m_config.find(key)->second;
+}
+
+Config* Config::GetInstance()
+{
+	if (m_instance == nullptr)
+	{
+		m_instance = new Config();
+	}
+	return m_instance;
 }
 
 void Config::StoreKeyValue(string key, string value)

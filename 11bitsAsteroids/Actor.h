@@ -23,7 +23,13 @@ public:
 	void SetDelete(bool newDelete);
 	void SetColor(glm::vec3 color);
 
-	inline bool IsActive() { return m_active; };
+	inline bool IsActive() { return m_active; }
+	inline bool IsDelete() { return m_delete; }
+	inline Physics::PhysicActor* GetPhysicsActor() { return m_physicsActor; }
+	inline Mesh* GetMesh() { return m_mesh; }
+	inline glm::vec3 GetPosition() { return m_position; }
+
+protected:
 
 	glm::vec3 m_position;
 	glm::vec3 m_scale;
@@ -35,13 +41,14 @@ public:
 	glm::vec3 m_color;
 
 	bool m_active;
+
+	// Actor should be deleted on restart
 	bool m_delete;
 
 	// physics pointer
 	Physics::PhysicActor* m_physicsActor = 0;
 
 	Mesh* m_mesh = 0;
-
 };
 
 #endif

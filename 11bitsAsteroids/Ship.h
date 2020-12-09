@@ -8,9 +8,10 @@
 const float SHIP_SPEED = 5.0f;
 
 class Shader;
+class Bullet;
 
 //Used as abstraction to stay away from window-system specific input methods
-enum Ship_Movement {
+enum class Ship_Movement {
 	L,
 	R
 };
@@ -32,7 +33,11 @@ public:
 
 	void Reset() override;
 
-public:
+	void SetForceDirection(float direction);
+
+	Bullet* Fire();
+
+private:
 
 	// accerelated horizontal movement
 	float m_thrust;

@@ -18,18 +18,16 @@
 #include <sstream>
 #include <iomanip>
 
-#define CONFIG_FILE "config/config.conf"
-
 // externs
 Physics* g_PhysicsPtr;
-Config* g_Config;
+//Config* g_Config;
 
 __inline float Randf(float min, float max)
 {
 	return (float)(((rand() & 32767)*(1.0 / 32767.0))*(max - min) + min);
 }
 
-Game::Game() : m_state(GAME_ACTIVE)
+Game::Game() : m_state(GameState::GAME_ACTIVE)
 {
 	InitContext();
 	
@@ -40,7 +38,7 @@ Game::~Game()
 {
 	glfwTerminate();
 
-	delete camera;
+	delete m_camera;
 	//delete ship;
 	//delete m_AsteroidMgr;
 	delete m_text;
@@ -48,6 +46,9 @@ Game::~Game()
 
 void Game::InitContext()
 {
+	// Load file config properties
+	Config::GetInstance()->Load(CONFIG_FILE);
+
 	// glfw: initialize and configure
 	// ------------------------------
 	glfwInit();
@@ -58,18 +59,19 @@ void Game::InitContext()
 
 	// glfw window creation
 	// --------------------
-	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "11bits~Asteroids", NULL, NULL);
-	if (window == NULL)
+	m_window = glfwCreateWindow(Config::GetInstance()->GetValue(Config::SRC_WIDTH),
+		Config::GetInstance()->GetValue(Config::SRC_HEIGHT), "11bits~Asteroids", NULL, NULL);
+	if (m_window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		exit(-1);
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, _framebuffer_size_callback);  
+	glfwMakeContextCurrent(m_window);
+	glfwSetFramebufferSizeCallback(m_window, _framebuffer_size_callback);
 	
 	// tell GLFW to capture our mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// glad: load all OpenGL function pointers
 	// ---------------------------------------                                                                   
@@ -91,7 +93,7 @@ void Game::InitContext()
 
 	// build and compile our base shader program
 	// -----------------------------------------
-	ResourceManager::LoadShader("shaders/shader.vs", "shaders/shader.fs", "shaders/shader.gs", "base");
+	ResourceManager::GetInstance()->LoadShader("shaders/shader.vs", "shaders/shader.fs", "shaders/shader.gs", "base");
 
 	// initialize random seed
 	srand(time(NULL)); 
@@ -99,49 +101,50 @@ void Game::InitContext()
 
 void Game::InitGame()
 {
-	g_Config = new Config();
-	// Load file config properties
-	g_Config->Load(CONFIG_FILE);
-
 	g_PhysicsPtr = new Physics(glm::vec3(0.0f, 0.0f, 0.0f));
 	
-	camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
+	m_camera = new Camera(glm::vec3(0.0f, 0.0f, 20.0f));
 	
-	ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f));
-	m_scene.push_back(ship);
+	m_ship = new Ship(glm::vec3(0.0f, -6.0f, 0.0f), glm::vec3(1.0f));
+	m_scene.push_back(m_ship);
 	
 	m_AsteroidMgr = new AsteroidMgr();
 	m_scene.push_back(m_AsteroidMgr);
 	
 	// text renderer with freetype
-	m_text = new TextRenderer(SCR_WIDTH, SCR_HEIGHT);
+	m_text = new TextRenderer(Config::GetInstance()->GetValue(Config::SRC_WIDTH), 
+		Config::GetInstance()->GetValue(Config::SRC_HEIGHT));
 	m_text->Load("fonts/arial.ttf", 24);
 
-	gameTime = 0.0f;
+	m_gameTime = 0.0f;
 	m_score = 0;
 	m_demoFinished = false;
 
 	// Projection and camera is fixed no need to update in every tick
-	ResourceManager::GetShader("base").Use();
+	ResourceManager::GetInstance()->GetShader("base").Use();
 	// pass projection matrix to shader 
-	glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 10.0f, 100.0f);
-	ResourceManager::GetShader("base").SetMatrix4("projection", projection);
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->GetZoom()),
+		(float)Config::GetInstance()->GetValue(Config::SRC_WIDTH) /
+		(float)Config::GetInstance()->GetValue(Config::SRC_HEIGHT),
+		10.0f, 
+		100.0f);
+	ResourceManager::GetInstance()->GetShader("base").SetMatrix4("projection", projection);
 	// camera/view transformation
-	glm::mat4 view = camera->GetViewMatrix();
-	ResourceManager::GetShader("base").SetMatrix4("view", view);
+	glm::mat4 view = m_camera->GetViewMatrix();
+	ResourceManager::GetInstance()->GetShader("base").SetMatrix4("view", view);
 }
 
 void Game::Execute()
 {
 	float currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
+	m_deltaTime = currentFrame - m_lastFrame;
+	m_lastFrame = currentFrame;
 
 	// ..:: INPUT ::..
-	this->ProcessInput(window, deltaTime);
+	this->ProcessInput(m_window, m_deltaTime);
 
 	// ..:: LOGIC ::..
-	this->Update(deltaTime);
+	this->Update(m_deltaTime);
 
 	// ..:: RENDER ::..
 	this->Render();
@@ -149,10 +152,10 @@ void Game::Execute()
 
 void Game::Update(float deltaTime)
 {
-	if (this->m_state == GAME_ACTIVE)
+	if (this->m_state == GameState::GAME_ACTIVE)
 	{
-		currentBulletFreq += deltaTime;
-		gameTime += deltaTime;
+		m_currentBulletFreq += deltaTime;
+		m_gameTime += deltaTime;
 
 		// ..:: LOGIC ::..
 		for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
@@ -165,7 +168,7 @@ void Game::Update(float deltaTime)
 			}
 			else
 			{
-				actor->m_physicsActor->active = false;
+				actor->GetPhysicsActor()->active = false;
 				it = m_scene.erase(it);
 				delete actor;
 			}			
@@ -191,22 +194,26 @@ void Game::Render()
 
 	// ..:: Drawing code ::..
 	// be sure to activate the shader
-	ResourceManager::GetShader("base").Use();
+	ResourceManager::GetInstance()->GetShader("base").Use();
 
 	// pass projection matrix to shader 
-	glm::mat4 projection = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 10.0f, 100.0f);
-	ResourceManager::GetShader("base").SetMatrix4("projection", projection);
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->GetZoom()),
+		(float)Config::GetInstance()->GetValue(Config::SRC_WIDTH) /
+		(float)Config::GetInstance()->GetValue(Config::SRC_HEIGHT),
+		10.0f, 
+		100.0f);
+	ResourceManager::GetInstance()->GetShader("base").SetMatrix4("projection", projection);
 
 	// camera/view transformation
-	glm::mat4 view = camera->GetViewMatrix();
-	ResourceManager::GetShader("base").SetMatrix4("view", view);
+	glm::mat4 view = m_camera->GetViewMatrix();
+	ResourceManager::GetInstance()->GetShader("base").SetMatrix4("view", view);
 
 	// Render scene
 	for (Actor* actor: m_scene)
 	{
 		if (actor->IsActive()) 
 		{
-			actor->Render(ResourceManager::GetShader("base"));
+			actor->Render(ResourceManager::GetInstance()->GetShader("base"));
 		}
 	}
 
@@ -215,7 +222,7 @@ void Game::Render()
 
 	// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 	// -------------------------------------------------------------------------------
-	glfwSwapBuffers(window);
+	glfwSwapBuffers(m_window);
 	glfwPollEvents();
 }
 
@@ -224,16 +231,16 @@ void Game::RenderUI()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	std::stringstream stream;
-	stream << std::fixed << std::setprecision(1) << gameTime;
+	stream << std::fixed << std::setprecision(1) << m_gameTime;
 	string timePanel = "Time: " + stream.str();
 	string scorePanel = "Score: " + to_string(m_score);
-	m_text->RenderText(timePanel, 50, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
-	m_text->RenderText(scorePanel, 650, SCR_HEIGHT / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
+	m_text->RenderText(timePanel, 50, Config::GetInstance()->GetValue(Config::SRC_WIDTH) / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
+	m_text->RenderText(scorePanel, 650, Config::GetInstance()->GetValue(Config::SRC_HEIGHT) / 10, 1.0, glm::vec3(1.0, 1.0, 1.0));
 
-	if (m_state == GAME_RESTART)
+	if (m_state == GameState::GAME_RESTART)
 	{
-		m_text->RenderText("You LOSE!!!", 320.0, SCR_HEIGHT / 2 - 25.0, 1.0, glm::vec3(1.0, 0.0, 0.0));
-		m_text->RenderText("Press R to restart or ESC to quit", 220.0, SCR_HEIGHT / 2, 1.0, glm::vec3(1.0, 1.0, 1.0));
+		m_text->RenderText("You LOSE!!!", 320.0, Config::GetInstance()->GetValue(Config::SRC_HEIGHT) / 2 - 25.0, 1.0, glm::vec3(1.0, 0.0, 0.0));
+		m_text->RenderText("Press R to restart or ESC to quit", 220.0, Config::GetInstance()->GetValue(Config::SRC_HEIGHT) / 2, 1.0, glm::vec3(1.0, 1.0, 1.0));
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -242,14 +249,14 @@ void Game::RenderUI()
 void Game::Restart()
 {
 	// hot-reload config file
-	g_Config->Load(CONFIG_FILE);
+	Config::GetInstance()->Load(CONFIG_FILE);
 
 	for (std::list<Actor*>::iterator it = m_scene.begin(); it != m_scene.end();)
 	{
 		Actor* actor = (*it);
-		if (actor->m_delete)	// clean delete actors
+		if (actor->IsDelete())	// clean runtime deleteable actors
 		{
-			actor->m_physicsActor->active = false;
+			actor->GetPhysicsActor()->active = false;
 			it = m_scene.erase(it);
 			delete actor;
 		}
@@ -260,17 +267,17 @@ void Game::Restart()
 		}
 	}
 
-	gameTime = 0.0f;
+	m_gameTime = 0.0f;
 	m_score = 0;
 	m_physicsTimeStepAccum = 0.0f;
 	m_demoFinished = false;
-	m_state = GAME_ACTIVE;
+	m_state = GameState::GAME_ACTIVE;
 }
 
 void Game::Finalize()
 {
 	m_demoFinished = true;
-	glfwSetWindowShouldClose(window, true);
+	glfwSetWindowShouldClose(m_window, true);
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
@@ -284,40 +291,38 @@ void Game::ProcessInput(GLFWwindow* window, float deltaTime)
 	}
 
 	// Active inputs
-	if (this->m_state == GAME_ACTIVE)
+	if (m_state == GameState::GAME_ACTIVE)
 	{
-		ship->m_physicsActor->accelerationForce = glm::vec3(0.0f);
+		m_ship->GetPhysicsActor()->accelerationForce = glm::vec3(0.0f);
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
-			ship->m_physicsActor->accelerationForce = glm::vec3(-(ship->m_thrust), 0.0f, 0.0f);
+			m_ship->SetForceDirection(-1.0f);
 		}	
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
-			ship->m_physicsActor->accelerationForce = glm::vec3(ship->m_thrust, 0.0f, 0.0f);
+			m_ship->SetForceDirection(1.0f);
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		{
-			if (currentBulletFreq >= g_Config->GetValue(Config::BULLET_FREQUENCY))
+			if (m_currentBulletFreq >= Config::GetInstance()->GetValue(Config::BULLET_FREQUENCY))
 			{
-				currentBulletFreq = 0.0f;
+				m_currentBulletFreq = 0.0f;
 
-				glm::vec3 bulletPosition = glm::vec3(ship->m_position) + glm::vec3(0.0f, 0.8f, 0.0f);
-				Bullet* bullet = new Bullet(bulletPosition, 0.2f, glm::vec3(0.0f, g_Config->GetValue(Config::BULLET_VELOCITY), 0.0f));
-				bullet->SetDelete(true);	// delete from scene on restart
+				Bullet* bullet = m_ship->Fire();
 				m_scene.push_back(bullet);
 			}
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
 		{
-			if (g_Config->GetValue(Config::RAPID_FIRE))
+			if (Config::GetInstance()->GetValue(Config::RAPID_FIRE))
 			{
-				currentBulletFreq = g_Config->GetValue(Config::BULLET_FREQUENCY);
+				m_currentBulletFreq = Config::GetInstance()->GetValue(Config::BULLET_FREQUENCY);
 			}
 		}
 	}
 
-	if (this->m_state == GAME_RESTART)
+	if (m_state == GameState::GAME_RESTART)
 	{
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
 		{
@@ -325,6 +330,11 @@ void Game::ProcessInput(GLFWwindow* window, float deltaTime)
 			Restart();	// Restart game
 		}
 	}
+}
+
+void Game::SetGameState(GameState newState)
+{
+	m_state = newState;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

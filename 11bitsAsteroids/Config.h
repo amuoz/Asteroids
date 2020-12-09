@@ -1,3 +1,6 @@
+/*
+* Config singleton for configuration file
+*/
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -21,18 +24,42 @@ public:
 	static const string EXPLOSION_DURATION;
 	static const string RAPID_FIRE;
 	static const string DIFFICULTY_INCREASE;
+	static const string SRC_WIDTH;
+	static const string SRC_HEIGHT;
 
-	Config();
-	~Config();
+	// Singletons should not be cloneable
+	Config(Config& other) = delete;
 
-	// loads config from file
-	void Load(const char *file);
+	// Singletons should not be assignable
+	void operator=(const Config&) = delete;
 
-	float GetValue(string key);
+	/*
+	* Static method that controls access to the singleton instance.
+	* On the first run, it creates a singleton objetct and places it 
+	* into the static field. On subsequent runs it returns the existing
+	* object stored in the static field.
+	*/
+	static Config* GetInstance();
+
+	/*
+	* Business Logic
+	*/
+
+	// Loads config from file
+	void Load(const char* file);
+
+	// Get the key selector value
+	float GetValue(string key) const;
 
 private:
 
+	// private constructor because singletons should not create objects from outside
+	Config();
+	~Config();
+
 	void StoreKeyValue(string key, string value);
+
+	static Config* m_instance;
 
 	map<string, float> m_config;
 };
